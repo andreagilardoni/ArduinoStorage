@@ -7,17 +7,11 @@
 
 class STM32H7KVStore: public KVStoreInterface<const char*> {
 public:
-    STM32H7KVStore(mbed::KVStore* store = nullptr);
-    ~STM32H7KVStore() {
-        if (bd != nullptr) {
-            delete kvstore;
-            kvstore = nullptr;
-            delete bd;
-            bd = nullptr;
-        }
-    }
+    STM32H7KVStore();
+    ~STM32H7KVStore() { end(); }
 
     bool begin() override;
+    bool begin(bool reformat, mbed::KVStore* store = nullptr);
     bool end() override;
     bool clear() override;
 
@@ -31,51 +25,96 @@ private:
     mbed::KVStore* kvstore;
 };
 
-STM32H7KVStore::STM32H7KVStore(mbed::KVStore* store): kvstore(store), bd(nullptr) {
-    if(kvstore == nullptr) {
+STM32H7KVStore::STM32H7KVStore(): kvstore(nullptr), bd(nullptr) {}
+
+bool STM32H7KVStore::begin() {
+    return begin(false);
+}
+
+bool STM32H7KVStore::begin(bool reformat, mbed::KVStore* store) {
+    // bd gets allocated if a kvstore is not provided as parameter here
+    // if either one of bd or kvstore is different from NULL it means that the kvstore
+    // had already been called begin on
+    if(bd != nullptr || kvstore != nullptr) {
+        return false;
+    }
+
+    if(store != nullptr) {
+        kvstore = store;
+    } else {
         auto root = mbed::BlockDevice::get_default_instance();
 
         if (root->init() != QSPIF_BD_ERROR_OK) {
             Serial.println(F("Error: QSPI init failure."));
-            return;
+            return false;
         }
-        bd = new mbed::MBRBlockDevice(root, 4);
 
-        if(bd->get_partition_start() == bd->get_partition_stop()) {
-            // resize partition
-            Serial.println(F("Resizing partition"));
-            auto res = mbed::MBRBlockDevice::partition(root, 4, 0x0B, 14 * 1024 * 1024, 14 * 1024 * 1024 + 512 * 1024); // 14 MB - end
+        bd = new mbed::MBRBlockDevice(root, 4);
+        int res = bd->init();
+        if (res != QSPIF_BD_ERROR_OK && !reformat) {
+            Serial.println(F("Error: QSPI is not properly formatted, "
+                "run QSPIformat.ino set reformat to true"));
+            return false;
+        } else if (res != QSPIF_BD_ERROR_OK && reformat) {
+            Serial.println(F("Error: QSPI is not properly formatted, "
+                "reformatting it according to the following scheme:"));
+            Serial.println(F("Partition 1: WiFi firmware and certificates 1MB"));
+            Serial.println(F("Partition 2: OTA 5MB"));
+            Serial.println(F("Partition 3: User data 7MB")),
+            Serial.println(F("Partition 4: Provisioning KVStore 1MB"));
+
+            mbed::MBRBlockDevice::partition(root, 1, 0x0B, 0, 1024 * 1024);
+            mbed::MBRBlockDevice::partition(root, 2, 0x0B, 1024 * 1024, 6 * 1024 * 1024);
+            mbed::MBRBlockDevice::partition(root, 3, 0x0B, 6 * 1024 * 1024, 13 * 1024 * 1024);
+            mbed::MBRBlockDevice::partition(root, 4, 0x0B, 13* 1024 * 1024, 14 * 1024 * 1024);
         }
 
         kvstore = new mbed::TDBStore(bd);
     }
-}
 
-bool STM32H7KVStore::begin() {
     return kvstore->init() == MBED_SUCCESS;
 }
 
 bool STM32H7KVStore::end() {
-    return kvstore->deinit() == MBED_SUCCESS;
+    bool res = false;
+
+    if(kvstore != nullptr && bd == nullptr) {
+        res = kvstore->deinit() == MBED_SUCCESS;
+        kvstore = nullptr;
+    } else if(kvstore != nullptr && bd != nullptr) {
+        res = kvstore->deinit() == MBED_SUCCESS;
+
+        delete kvstore;
+        kvstore = nullptr;
+
+        delete bd;
+        bd = nullptr;
+    }
+
+    return res;
 }
 
 bool STM32H7KVStore::clear() {
-    return kvstore->reset();
+    return kvstore != nullptr ? kvstore->reset() : false;
 }
 
 typename KVStoreInterface<const char*>::res_t STM32H7KVStore::remove(const key_t& key) {
-    return kvstore->remove(key);
+    return kvstore != nullptr ? kvstore->remove(key) : -1;
 }
 
 typename KVStoreInterface<const char*>::res_t STM32H7KVStore::putBytes(const key_t& key, uint8_t buf[], size_t len) {
-    return kvstore->set(key, buf, len, 0); // TODO flags
+    return kvstore != nullptr ? kvstore->set(key, buf, len, 0) : -1; // TODO flags
 }
 
 typename KVStoreInterface<const char*>::res_t STM32H7KVStore::getBytes(const key_t& key, uint8_t buf[], size_t maxLen) const {
-    return kvstore->get(key, buf, maxLen);
+    return kvstore != nullptr ? kvstore->get(key, buf, maxLen) : false;
 }
 
 size_t STM32H7KVStore::getBytesLength(const key_t& key) const {
+    if(kvstore == nullptr) {
+        return 0;
+    }
+
     mbed::KVStore::info_t info;
     auto res = kvstore->get_info(key, &info);
 
