@@ -7,7 +7,8 @@
 
 using namespace std;
 
-// 1
+const char DEFAULT_KVSTORE_NAME[] = "arduino"
+
 class Unor4KVStore: public KVStoreInterface<const char*> {
 public:
     typedef enum {
@@ -17,6 +18,7 @@ public:
 
     Unor4KVStore(const char* name): name(name) {}
     bool begin();
+    bool begin(const char* name);
     bool end();
     bool clear();
 
@@ -33,16 +35,16 @@ public:
     KVStoreInterface<const char*>::reference<T1> get(const key_t& key, T1 def = 0) { return KVStoreInterface<const char*>::get(key, def); }
 
 private:
-    const char* name;
+    char* name;
 };
 
-// template<typename T>
-bool Unor4KVStore::begin() {
+bool Unor4KVStore::begin(const char* name) {
+    this->name = name;
     string res = "";
     bool readOnly=false; const char* partition_label=NULL; // FIXME this was a parameter
 
     modem.begin();
-    if (name != nullptr && strlen(name) > 0) {
+    if (this->name != nullptr && strlen(this->name) > 0) {
         if (modem.write(string(PROMPT(_PREF_BEGIN)), res, "%s%s,%d,%s\r\n", CMD_WRITE(_PREF_BEGIN), name, readOnly, partition_label != NULL ? partition_label : "")) {
             return (atoi(res.c_str()) != 0) ? true : false;
         }
@@ -50,13 +52,15 @@ bool Unor4KVStore::begin() {
     return false;
 }
 
-// template<typename T>
+bool Unor4KVStore::begin() {
+    return begin(DEFAULT_KVSTORE_NAME);
+}
+
 bool Unor4KVStore::end() {
     string res = "";
     modem.write(string(PROMPT(_PREF_END)), res, "%s", CMD(_PREF_END));
 }
 
-// template<typename T>
 bool Unor4KVStore::clear() {
     string res = "";
     if (modem.write(string(PROMPT(_PREF_CLEAR)), res, "%s", CMD(_PREF_CLEAR))) {
@@ -65,7 +69,6 @@ bool Unor4KVStore::clear() {
     return false;
 }
 
-// template<typename T>
 typename KVStoreInterface<const char*>::res_t Unor4KVStore::remove(const key_t& key) {
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -76,7 +79,6 @@ typename KVStoreInterface<const char*>::res_t Unor4KVStore::remove(const key_t& 
     return false;
 }
 
-// template<typename T>
 typename KVStoreInterface<const char*>::res_t Unor4KVStore::putBytes(const key_t& key, uint8_t value[], size_t len) {
     string res = "";
     if ( key != nullptr && strlen(key) > 0 && value != nullptr && len > 0) {
@@ -88,7 +90,6 @@ typename KVStoreInterface<const char*>::res_t Unor4KVStore::putBytes(const key_t
     return 0;
 }
 
-// template<typename T>
 typename KVStoreInterface<const char*>::res_t Unor4KVStore::getBytes(const key_t& key, uint8_t buf[], size_t maxLen) const {
     size_t len = getBytesLength(key);
     string res = "";
@@ -104,7 +105,6 @@ typename KVStoreInterface<const char*>::res_t Unor4KVStore::getBytes(const key_t
     return 0;
 }
 
-// template<typename T>
 size_t Unor4KVStore::getBytesLength(const key_t& key) const {
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -116,7 +116,6 @@ size_t Unor4KVStore::getBytesLength(const key_t& key) const {
 }
 
 
-// template<typename T>
 bool Unor4KVStore::exists(const key_t& key) const {
     return getBytesLength(key) > 0;
 }
