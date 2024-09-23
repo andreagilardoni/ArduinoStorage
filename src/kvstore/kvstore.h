@@ -99,7 +99,7 @@ public:
      *
      * @returns true on correct execution false otherwise
      */
-    virtual bool begin() = 0; // FIXME consider error during initialization
+    virtual bool begin() = 0;
 
     /**
      * @brief function that provides finalization for the KV store
