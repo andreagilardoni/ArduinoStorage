@@ -7,7 +7,7 @@
 
 using namespace std;
 
-const char DEFAULT_KVSTORE_NAME[] = "arduino"
+const char DEFAULT_KVSTORE_NAME[] = "arduino";
 
 class Unor4KVStore: public KVStoreInterface<const char*> {
 public:
@@ -16,7 +16,7 @@ public:
     } Type;
 
 
-    Unor4KVStore(const char* name): name(name) {}
+    Unor4KVStore(const char* name=DEFAULT_KVSTORE_NAME): name(name) {}
     bool begin();
     bool begin(const char* name);
     bool end();
@@ -35,7 +35,7 @@ public:
     KVStoreInterface<const char*>::reference<T1> get(const key_t& key, T1 def = 0) { return KVStoreInterface<const char*>::get(key, def); }
 
 private:
-    char* name;
+    const char* name;
 };
 
 bool Unor4KVStore::begin(const char* name) {
