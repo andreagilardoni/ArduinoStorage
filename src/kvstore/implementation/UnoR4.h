@@ -176,38 +176,38 @@ typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<int32_t>(const k
     return 0;
 }
 
-// template<>
-// typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<uint32_t>(const key_t& key, uint32_t value) {
-//     string res = "";
-//     if (key != nullptr && strlen(key) > 0) {
-//         if (modem.write(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%hu\r\n", CMD_WRITE(_PREF_PUT), key, PT_U32, value)) {
-//             return atoi(res.c_str());
-//         }
-//     }
-//     return 0;
-// }
+template<>
+typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<uint32_t>(const key_t& key, uint32_t value) {
+    string res = "";
+    if (key != nullptr && strlen(key) > 0) {
+        if (modem.write(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%hu\r\n", CMD_WRITE(_PREF_PUT), key, PT_U32, value)) {
+            return atoi(res.c_str());
+        }
+    }
+    return 0;
+}
 
-// template<>
-// typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<int64_t>(const key_t& key, int64_t value) {
-//     string res = "";
-//     if (key != nullptr && strlen(key) > 0) {
-//         if (modem.write(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%hu\r\n", CMD_WRITE(_PREF_PUT), key, PT_I64, value)) {
-//             return atoi(res.c_str());
-//         }
-//     }
-//     return 0;
-// }
+template<>
+typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<int64_t>(const key_t& key, int64_t value) {
+    string res = "";
+    if (key != nullptr && strlen(key) > 0) {
+        if (modem.write(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%hu\r\n", CMD_WRITE(_PREF_PUT), key, PT_I64, value)) {
+            return atoi(res.c_str());
+        }
+    }
+    return 0;
+}
 
-// template<>
-// typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<uint64_t>(const key_t& key, uint64_t value) {
-//     string res = "";
-//     if (key != nullptr && strlen(key) > 0) {
-//         if (modem.write(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%hu\r\n", CMD_WRITE(_PREF_PUT), key, PT_U64, value)) {
-//             return atoi(res.c_str());
-//         }
-//     }
-//     return 0;
-// }
+template<>
+typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<uint64_t>(const key_t& key, uint64_t value) {
+    string res = "";
+    if (key != nullptr && strlen(key) > 0) {
+        if (modem.write(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%hu\r\n", CMD_WRITE(_PREF_PUT), key, PT_U64, value)) {
+            return atoi(res.c_str());
+        }
+    }
+    return 0;
+}
 
 template<>
 typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<const char*>(const key_t& key, const char* value) {
@@ -292,29 +292,29 @@ KVStoreInterface<const char*>::reference<uint32_t> Unor4KVStore::get<uint32_t>(c
     return reference<uint32_t>(key, value, *this);
 }
 
-// template<>
-// KVStoreInterface<const char*>::reference<int64_t> Unor4KVStore::get<int64_t>(const key_t& key, int64_t defaultValue) {
-    // int64_t value = defaultValue;
-    // string res = "";
-    // if (key != nullptr && strlen(key) > 0) {
-    //     if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%u\r\n", CMD_WRITE(_PREF_GET), key, PT_I64, defaultValue)) {
-    //         sscanf(res.c_str(), "%u", &value);
-    //     }
-    // }
-    // return //eference<T>(key, value, *this);
-// }
+template<>
+KVStoreInterface<const char*>::reference<int64_t> Unor4KVStore::get<int64_t>(const key_t& key, int64_t defaultValue) {
+    int64_t value = defaultValue;
+    string res = "";
+    if (key != nullptr && strlen(key) > 0) {
+        if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%u\r\n", CMD_WRITE(_PREF_GET), key, PT_I64, defaultValue)) {
+            sscanf(res.c_str(), "%u", &value);
+        }
+    }
+    return reference<int64_t>(key, value, *this);
+}
 
-// template<>
-// KVStoreInterface<const char*>::reference<uint64_t> Unor4KVStore::get<uint64_t>(const key_t& key, uint64_t defaultValue) {
-    // uint64_t value = defaultValue;
-    // string res = "";
-    // if (key != nullptr && strlen(key) > 0) {
-    //     if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%u\r\n", CMD_WRITE(_PREF_GET), key, PT_U64, defaultValue)) {
-    //         sscanf(res.c_str(), "%u", &value);
-    //     }
-    // }
-    // return //eference<T>(key, value, *this);
-// }
+template<>
+KVStoreInterface<const char*>::reference<uint64_t> Unor4KVStore::get<uint64_t>(const key_t& key, uint64_t defaultValue) {
+    uint64_t value = defaultValue;
+    string res = "";
+    if (key != nullptr && strlen(key) > 0) {
+        if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%u\r\n", CMD_WRITE(_PREF_GET), key, PT_U64, defaultValue)) {
+            sscanf(res.c_str(), "%u", &value);
+        }
+    }
+    return reference<uint64_t>(key, value, *this);
+}
 
 // template<>
 // KVStoreInterface<const char*>::reference<const char*> Unor4KVStore::get<const char*>(const key_t& key, const char* defaultValue) {
