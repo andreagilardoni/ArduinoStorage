@@ -93,8 +93,8 @@ typename KVStoreInterface<const char*>::res_t Unor4KVStore::putBytes(const key_t
     string res = "";
     if ( key != nullptr && strlen(key) > 0 && value != nullptr && len > 0) {
         modem.write_nowait(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%d\r\n", CMD_WRITE(_PREF_PUT), key, PT_BLOB, len);
-        if(modem.passthrough((uint8_t *)value, len, &res)) {
-            return atoi(res.c_str());
+        if(modem.passthrough((uint8_t *)value, len)) {
+            return len;
         }
     }
     return 0;
@@ -364,6 +364,8 @@ KVStoreInterface<const char*>::reference<const char*> Unor4KVStore::get<const ch
     if (key != nullptr && strlen(key) > 0) {
         modem.read_using_size();
         if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%s\r\n", CMD_WRITE(_PREF_GET), key, PT_STR, defaultValue)) {
+            res.push_back('\0');
+
             return reference<const char*>(key, res.c_str(), *this);
         }
     }
@@ -376,6 +378,8 @@ KVStoreInterface<const char*>::reference<string> Unor4KVStore::get<string>(const
     if (key != nullptr && strlen(key) > 0) {
         modem.read_using_size();
         if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%s\r\n", CMD_WRITE(_PREF_GET), key, PT_STR, defaultValue.c_str())) {
+            res.push_back('\0');
+
             return reference<string>(key, res, *this);
         }
     }
@@ -388,6 +392,8 @@ KVStoreInterface<const char*>::reference<String> Unor4KVStore::get<String>(const
     if (key != nullptr && strlen(key) > 0) {
         modem.read_using_size();
         if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%s\r\n", CMD_WRITE(_PREF_GET), key, PT_STR, defaultValue.c_str())) {
+            res.push_back('\0');
+
             return reference<String>(key, res.c_str(), *this);
         }
     }
