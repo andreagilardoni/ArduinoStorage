@@ -18,7 +18,7 @@ using KVStore = STM32H7KVStore;
 #include "kvstore/implementation/portentac33.h"
 
 using KVStore = PortentaC33KVStore;
-#elif defined(ARDUINO_ARCH_SAMD)
+#elif defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_NANO_RP2040_CONNECT)
 
 #include "kvstore/implementation/SAMD.h"
 
