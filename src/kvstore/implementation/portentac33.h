@@ -8,6 +8,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 #pragma once
+#include "../kvstore.h"
 #include <KVStore.h>
 #include <TDBStore.h>
 #include <Arduino_DebugUtils.h>
