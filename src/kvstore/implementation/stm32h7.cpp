@@ -100,10 +100,14 @@ typename KVStoreInterface<const char*>::res_t STM32H7KVStore::putBytes(const key
 }
 
 typename KVStoreInterface<const char*>::res_t STM32H7KVStore::getBytes(const key_t& key, uint8_t buf[], size_t maxLen) const {
-    size_t actual_size;
+    if(kvstore == nullptr) {
+        return -1;
+    }
+
+    size_t actual_size = maxLen;
     auto res = kvstore->get(key, buf, maxLen, &actual_size);
 
-    return kvstore != nullptr ? fromMbedErrors(res, actual_size) : -1;
+    return fromMbedErrors(res, actual_size);
 }
 
 size_t STM32H7KVStore::getBytesLength(const key_t& key) const {
