@@ -55,20 +55,32 @@ bool PortentaC33KVStore::end() {
     return res;
 }
 
+template<typename T=int>
+static inline typename KVStoreInterface<const char*>::res_t fromMbedErrors(int error, T res=1) {
+    return error == KVSTORE_SUCCESS ? res : -error;
+}
+
 bool PortentaC33KVStore::clear() {
     return kvstore != nullptr ? kvstore->reset() : false;
 }
 
 typename KVStoreInterface<const char*>::res_t PortentaC33KVStore::remove(const key_t& key) {
-    return kvstore != nullptr ? kvstore->remove(key) : -1;
+    return kvstore != nullptr ? fromMbedErrors(kvstore->remove(key)) : -1;
 }
 
 typename KVStoreInterface<const char*>::res_t PortentaC33KVStore::putBytes(const key_t& key, uint8_t buf[], size_t len) {
-    return kvstore != nullptr ? kvstore->set(key, buf, len, 0) : -1; // TODO flags
+    return kvstore != nullptr ? fromMbedErrors(kvstore->set(key, buf, len, 0), len) : -1; // TODO flags
 }
 
 typename KVStoreInterface<const char*>::res_t PortentaC33KVStore::getBytes(const key_t& key, uint8_t buf[], size_t maxLen) const {
-    return kvstore != nullptr ? kvstore->get(key, buf, maxLen) : false;
+    if(kvstore == nullptr) {
+        return -1;
+    }
+
+    size_t actual_size = maxLen;
+    auto res = kvstore->get(key, buf, maxLen, &actual_size);
+
+    return fromMbedErrors(res, actual_size);
 }
 
 size_t PortentaC33KVStore::getBytesLength(const key_t& key) const {
