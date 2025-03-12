@@ -37,7 +37,7 @@ bool STM32H7KVStore::begin(bool reformat, mbed::KVStore* store) {
             return false;
         }
 
-        bd = new mbed::MBRBlockDevice(root, 4);
+        bd = new mbed::MBRBlockDevice(root, 3);
         int res = bd->init();
         if (res != QSPIF_BD_ERROR_OK && !reformat) {
             Serial.println(F("Error: QSPI is not properly formatted, "
@@ -47,14 +47,16 @@ bool STM32H7KVStore::begin(bool reformat, mbed::KVStore* store) {
             Serial.println(F("Error: QSPI is not properly formatted, "
                 "reformatting it according to the following scheme:"));
             Serial.println(F("Partition 1: WiFi firmware and certificates 1MB"));
-            Serial.println(F("Partition 2: OTA 5MB"));
-            Serial.println(F("Partition 3: User data 7MB")),
-            Serial.println(F("Partition 4: Provisioning KVStore 1MB"));
+            Serial.println(F("Partition 2: OTA and user data 12MB"));
+            Serial.println(F("Partition 3: Provisioning KVStore 1MB"));
+
+            // clearing MBR Table
+            root.erase(0x0, root.get_erase_size());
 
             mbed::MBRBlockDevice::partition(root, 1, 0x0B, 0, 1024 * 1024);
-            mbed::MBRBlockDevice::partition(root, 2, 0x0B, 1024 * 1024, 6 * 1024 * 1024);
-            mbed::MBRBlockDevice::partition(root, 3, 0x0B, 6 * 1024 * 1024, 13 * 1024 * 1024);
-            mbed::MBRBlockDevice::partition(root, 4, 0x0B, 13* 1024 * 1024, 14 * 1024 * 1024);
+            mbed::MBRBlockDevice::partition(root, 2, 0x0B, 1024 * 1024, 13 * 1024 * 1024);
+            mbed::MBRBlockDevice::partition(root, 3, 0x0B, 13 * 1024 * 1024, 14 * 1024 * 1024);
+            mbed::MBRBlockDevice::partition(root, 4, 0x0B, 14 * 1024 * 1024, 14 * 1024 * 1024);
         }
 
         kvstore = new mbed::TDBStore(bd);
