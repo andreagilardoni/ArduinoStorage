@@ -51,7 +51,7 @@ bool STM32H7KVStore::begin(bool reformat, mbed::KVStore* store) {
             Serial.println(F("Partition 3: Provisioning KVStore 1MB"));
 
             // clearing MBR Table
-            root.erase(0x0, root.get_erase_size());
+            root->erase(0x0, root->get_erase_size());
 
             mbed::MBRBlockDevice::partition(root, 1, 0x0B, 0, 1024 * 1024);
             mbed::MBRBlockDevice::partition(root, 2, 0x0B, 1024 * 1024, 13 * 1024 * 1024);
