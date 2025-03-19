@@ -20,7 +20,6 @@ jobs:
       # libraries to install for all boards
       UNIVERSAL_LIBRARIES: |
         - source-path: ./
-        - name: Arduino_DebugUtils
         - name: WiFiNINA
       # sketch paths to compile (recursive) for all boards
       UNIVERSAL_SKETCH_PATHS: |
@@ -38,7 +37,12 @@ jobs:
           - fqbn: arduino:samd:nano_33_iot
             type: nina
             artifact-name-suffix: arduino-samd-nano_33_iot
+          - fqbn: arduino:mbed_portenta:envie_m7
+            type: mbed_portenta
             artifact-name-suffix: arduino-mbed_portenta-envie_m7
+          - fqbn: esp32:esp32:esp32
+            type: esp32
+            artifact-name-suffix: esp32-esp32-esp32
           - fqbn: arduino:mbed_nano:nanorp2040connect
             type: nina
             artifact-name-suffix: arduino-mbed_nano-nanorp2040connect
@@ -57,6 +61,9 @@ jobs:
           - fqbn: arduino:renesas_uno:unor4wifi
             type: renesas_uno
             artifact-name-suffix: arduino-renesas_uno-unor4wifi
+          - fqbn: arduino:esp32:nano_nora
+            type: arduino_esp32
+            artifact-name-suffix: arduino-esp32-nano_nora
     steps:
       - name: Checkout
         uses: actions/checkout@v4
