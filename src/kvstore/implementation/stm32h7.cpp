@@ -1,5 +1,5 @@
 /*
- * This file is part of Arduino_Storage.
+ * This file is part of Arduino_KVStore.
  *
  * Copyright (c) 2024 Arduino SA
  *
