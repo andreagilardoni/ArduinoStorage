@@ -1,5 +1,5 @@
 /*
- * This file is part of Arduino_Storage.
+ * This file is part of Arduino_KVStore.
  *
  * Copyright (c) 2024 Arduino SA
  *
@@ -28,9 +28,9 @@ bool PortentaC33KVStore::begin(bool reformat, mbed::KVStore* store) {
     if(store != nullptr) {
         kvstore = store;
     } else {
-        auto root = BlockDevice::get_default_instance();
+        auto bd = new MBRBlockDevice(BlockDevice::get_default_instance(), 3);
 
-        kvstore = new TDBStore(root);
+        kvstore = new TDBStore(bd);
     }
 
     return kvstore->init() == KVSTORE_SUCCESS;
