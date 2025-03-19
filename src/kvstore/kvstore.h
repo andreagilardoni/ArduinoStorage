@@ -181,7 +181,7 @@ public:
      * @returns a reference to the desired key
      */
     template<typename T>
-    inline reference<T> get(const key_t& key, T def = 0) {
+    inline reference<T> get(const key_t& key, const T def = 0) {
         if(exists(key)) {
             T t;
             getBytes(key, (uint8_t*)&t, sizeof(t));
@@ -377,7 +377,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int8_t      getChar(key_t key, int8_t defaultValue = 0)             { return get(key, defaultValue); }
+    virtual int8_t      getChar(key_t key, const int8_t defaultValue = 0)             { return get(key, defaultValue); }
 
     /**
      * @brief get a uchar in the kvstore
@@ -387,7 +387,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint8_t     getUChar(key_t key, uint8_t defaultValue = 0)           { return get(key, defaultValue); }
+    virtual uint8_t     getUChar(key_t key, const uint8_t defaultValue = 0)           { return get(key, defaultValue); }
 
     /**
      * @brief get a short in the kvstore
@@ -397,7 +397,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int16_t     getShort(key_t key, int16_t defaultValue = 0)           { return get(key, defaultValue); }
+    virtual int16_t     getShort(key_t key, const int16_t defaultValue = 0)           { return get(key, defaultValue); }
 
     /**
      * @brief get a ushort in the kvstore
@@ -407,7 +407,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint16_t    getUShort(key_t key, uint16_t defaultValue = 0)         { return get(key, defaultValue); }
+    virtual uint16_t    getUShort(key_t key, const uint16_t defaultValue = 0)         { return get(key, defaultValue); }
 
     /**
      * @brief get an int in the kvstore
@@ -417,7 +417,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int32_t     getInt(key_t key, int32_t defaultValue = 0)             { return get(key, defaultValue); }
+    virtual int32_t     getInt(key_t key, const int32_t defaultValue = 0)             { return get(key, defaultValue); }
 
     /**
      * @brief get a uint in the kvstore
@@ -427,7 +427,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint32_t    getUInt(key_t key, uint32_t defaultValue = 0)           { return get(key, defaultValue); }
+    virtual uint32_t    getUInt(key_t key, const uint32_t defaultValue = 0)           { return get(key, defaultValue); }
 
     /**
      * @brief get a long in the kvstore
@@ -437,7 +437,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int32_t     getLong(key_t key, int32_t defaultValue = 0)            { return get(key, defaultValue); }
+    virtual int32_t     getLong(key_t key, const int32_t defaultValue = 0)            { return get(key, defaultValue); }
 
     /**
      * @brief get a ulong in the kvstore
@@ -447,7 +447,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint32_t    getULong(key_t key, uint32_t defaultValue = 0)          { return get(key, defaultValue); }
+    virtual uint32_t    getULong(key_t key, const uint32_t defaultValue = 0)          { return get(key, defaultValue); }
 
     /**
      * @brief get a long64 in the kvstore
@@ -457,7 +457,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int64_t     getLong64(key_t key, int64_t defaultValue = 0)          { return get(key, defaultValue); }
+    virtual int64_t     getLong64(key_t key, const int64_t defaultValue = 0)          { return get(key, defaultValue); }
 
     /**
      * @brief get a ulong64 in the kvstore
@@ -467,7 +467,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint64_t    getULong64(key_t key, uint64_t defaultValue = 0)        { return get(key, defaultValue); }
+    virtual uint64_t    getULong64(key_t key, const uint64_t defaultValue = 0)        { return get(key, defaultValue); }
 
     /**
      * @brief get a float in the kvstore
@@ -477,7 +477,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual float       getFloat(key_t key, float defaultValue = 0)             { return get(key, defaultValue); } // FIXME It was NAN
+    virtual float       getFloat(key_t key, const float defaultValue = NAN)             { return get(key, defaultValue); }
 
     /**
      * @brief get a double in the kvstore
@@ -487,7 +487,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual double      getDouble(key_t key, double defaultValue = 0)           { return get(key, defaultValue); } // FIXME It was NAN
+    virtual double      getDouble(key_t key, const double defaultValue = NAN)           { return get(key, defaultValue); }
 
     /**
      * @brief get a bool in the kvstore
@@ -497,7 +497,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual bool        getBool(key_t key, bool defaultValue = false)           { return get(key, defaultValue); }
+    virtual bool        getBool(key_t key, const bool defaultValue = false)           { return get(key, defaultValue); }
 
     /**
      * @brief get a C string in the kvstore
