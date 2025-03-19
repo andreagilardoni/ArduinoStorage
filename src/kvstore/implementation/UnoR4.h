@@ -1,5 +1,5 @@
 /*
- * This file is part of Arduino_Storage.
+ * This file is part of Arduino_KVStore.
  *
  * Copyright (c) 2024 Arduino SA
  *
@@ -44,7 +44,8 @@ public:
     template<typename T1>
     KVStoreInterface<const char*>::reference<T1> get(const key_t& key, T1 def = 0) { return KVStoreInterface<const char*>::get(key, def); }
 
-
+    virtual size_t putString(key_t key, const char* value) override;
+    size_t getString(const char* key, char* value, size_t maxLen) override;
 private:
     const char* name;
 };

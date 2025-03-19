@@ -1,5 +1,5 @@
 /*
- * This file is part of Arduino_Storage.
+ * This file is part of Arduino_KVStore.
  *
  * Copyright (c) 2024 Arduino SA
  *
@@ -190,6 +190,10 @@ typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<uint64_t>(const 
 
 template<>
 typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<const char*>(const key_t& key, const char* value) {
+    return putString(key, value);
+}
+
+size_t Unor4KVStore::putString(key_t key, const char* value) {
     string res = "";
     if (key != nullptr && strlen(key) > 0 && value != nullptr && strlen(value) > 0) {
         modem.write_nowait(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%d\r\n", CMD_WRITE(_PREF_PUT), key, PT_STR, strlen(value));
@@ -320,18 +324,22 @@ KVStoreInterface<const char*>::reference<uint64_t> Unor4KVStore::get<uint64_t>(c
     return reference<uint64_t>(key, value, *this);
 }
 
-template<>
-KVStoreInterface<const char*>::reference<const char*> Unor4KVStore::get<const char*>(const key_t& key, const char* defaultValue) {
-    string res = defaultValue;
+size_t Unor4KVStore::getString(const char* key, char* value, size_t maxLen) {
+    string res;
     if (key != nullptr && strlen(key) > 0) {
         modem.read_using_size();
-        if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%s\r\n", CMD_WRITE(_PREF_GET), key, PT_STR, defaultValue)) {
+        if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%s\r\n", CMD_WRITE(_PREF_GET), key, PT_STR, res)) {
             res.push_back('\0');
 
-            return reference<const char*>(key, res.c_str(), *this);
+            if(res.length() > maxLen-1) {
+                return 0;
+            }
+
+            strcpy(value, res.c_str());
+            return res.length();
         }
     }
-    return reference<const char*>(key, defaultValue, *this);
+    return 0;
 }
 
 template<>
