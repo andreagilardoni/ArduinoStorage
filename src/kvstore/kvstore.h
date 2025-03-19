@@ -38,7 +38,14 @@ public:
     template<typename T>
     class reference {
     public:
-        reference(const key_t &key, T value, KVStoreInterface& owner): key(key), value(value), owner(owner) {}
+        reference(const key_t &key, T value, KVStoreInterface& owner, std::function<void(T)> delete_value = nullptr)
+        : key(key), value(value), delete_value(delete_value), owner(owner) {}
+
+        ~reference() {
+            if(delete_value) {
+                delete_value(value);
+            }
+        }
 
         // assign a new value to the reference and update the store
         reference& operator=(T t) noexcept {
@@ -77,6 +84,7 @@ public:
     private:
         const key_t key;
         T value;
+        const std::function<void(T)> delete_value;
 
         KVStoreInterface<Key>& owner;
     };
