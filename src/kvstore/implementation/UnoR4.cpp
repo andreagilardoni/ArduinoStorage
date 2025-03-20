@@ -190,10 +190,6 @@ typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<uint64_t>(const 
 
 template<>
 typename KVStoreInterface<const char*>::res_t Unor4KVStore::put<const char*>(const key_t& key, const char* value) {
-    return putString(key, value);
-}
-
-size_t Unor4KVStore::putString(key_t key, const char* value) {
     string res = "";
     if (key != nullptr && strlen(key) > 0 && value != nullptr && strlen(value) > 0) {
         modem.write_nowait(string(PROMPT(_PREF_PUT)), res, "%s%s,%d,%d\r\n", CMD_WRITE(_PREF_PUT), key, PT_STR, strlen(value));
@@ -228,8 +224,16 @@ typename KVStoreInterface<String>::res_t Unor4KVStore::put<String>(const key_t& 
     return 0;
 }
 
+size_t Unor4KVStore::putString(key_t key, const char* value) {
+    return put(key, value);
+}
+
+size_t Unor4KVStore::putString(key_t key, String value) {
+    return put(key, value);
+}
+
 template<>
-KVStoreInterface<const char*>::reference<int8_t> Unor4KVStore::get<int8_t>(const key_t& key, int8_t defaultValue) {
+KVStoreInterface<const char*>::reference<int8_t> Unor4KVStore::get<int8_t>(const key_t& key, const int8_t defaultValue) {
     int8_t value = defaultValue;
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -241,7 +245,7 @@ KVStoreInterface<const char*>::reference<int8_t> Unor4KVStore::get<int8_t>(const
 }
 
 template<>
-KVStoreInterface<const char*>::reference<uint8_t> Unor4KVStore::get<uint8_t>(const key_t& key, uint8_t defaultValue) {
+KVStoreInterface<const char*>::reference<uint8_t> Unor4KVStore::get<uint8_t>(const key_t& key, const uint8_t defaultValue) {
     uint8_t value = defaultValue;
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -253,7 +257,7 @@ KVStoreInterface<const char*>::reference<uint8_t> Unor4KVStore::get<uint8_t>(con
 }
 
 template<>
-KVStoreInterface<const char*>::reference<int16_t> Unor4KVStore::get<int16_t>(const key_t& key, int16_t defaultValue) {
+KVStoreInterface<const char*>::reference<int16_t> Unor4KVStore::get<int16_t>(const key_t& key, const int16_t defaultValue) {
     int16_t value = defaultValue;
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -265,7 +269,7 @@ KVStoreInterface<const char*>::reference<int16_t> Unor4KVStore::get<int16_t>(con
 }
 
 template<>
-KVStoreInterface<const char*>::reference<uint16_t> Unor4KVStore::get<uint16_t>(const key_t& key, uint16_t defaultValue) {
+KVStoreInterface<const char*>::reference<uint16_t> Unor4KVStore::get<uint16_t>(const key_t& key, const uint16_t defaultValue) {
     uint16_t value = defaultValue;
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -277,7 +281,7 @@ KVStoreInterface<const char*>::reference<uint16_t> Unor4KVStore::get<uint16_t>(c
 }
 
 template<>
-KVStoreInterface<const char*>::reference<int32_t> Unor4KVStore::get<int32_t>(const key_t& key, int32_t defaultValue) {
+KVStoreInterface<const char*>::reference<int32_t> Unor4KVStore::get<int32_t>(const key_t& key, const int32_t defaultValue) {
     int32_t value = defaultValue;
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -289,7 +293,7 @@ KVStoreInterface<const char*>::reference<int32_t> Unor4KVStore::get<int32_t>(con
 }
 
 template<>
-KVStoreInterface<const char*>::reference<uint32_t> Unor4KVStore::get<uint32_t>(const key_t& key, uint32_t defaultValue) {
+KVStoreInterface<const char*>::reference<uint32_t> Unor4KVStore::get<uint32_t>(const key_t& key, const uint32_t defaultValue) {
     uint32_t value = defaultValue;
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -301,7 +305,7 @@ KVStoreInterface<const char*>::reference<uint32_t> Unor4KVStore::get<uint32_t>(c
 }
 
 template<>
-KVStoreInterface<const char*>::reference<int64_t> Unor4KVStore::get<int64_t>(const key_t& key, int64_t defaultValue) {
+KVStoreInterface<const char*>::reference<int64_t> Unor4KVStore::get<int64_t>(const key_t& key, const int64_t defaultValue) {
     int64_t value = defaultValue;
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -313,7 +317,7 @@ KVStoreInterface<const char*>::reference<int64_t> Unor4KVStore::get<int64_t>(con
 }
 
 template<>
-KVStoreInterface<const char*>::reference<uint64_t> Unor4KVStore::get<uint64_t>(const key_t& key, uint64_t defaultValue) {
+KVStoreInterface<const char*>::reference<uint64_t> Unor4KVStore::get<uint64_t>(const key_t& key, const uint64_t defaultValue) {
     uint64_t value = defaultValue;
     string res = "";
     if (key != nullptr && strlen(key) > 0) {
@@ -340,6 +344,18 @@ size_t Unor4KVStore::getString(const char* key, char* value, size_t maxLen) {
         }
     }
     return 0;
+}
+
+String Unor4KVStore::getString(key_t key, const String defaultValue) {
+    string res = defaultValue.c_str();;
+    if (key != nullptr && strlen(key) > 0) {
+        modem.read_using_size();
+        if (modem.write(string(PROMPT(_PREF_GET)), res, "%s%s,%d,%s\r\n", CMD_WRITE(_PREF_GET), key, PT_STR, defaultValue.c_str())) {
+
+            return String(res.c_str());
+        }
+    }
+    return String(res.c_str());
 }
 
 template<>

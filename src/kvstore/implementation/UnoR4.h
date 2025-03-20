@@ -24,7 +24,6 @@ public:
         PT_I8, PT_U8, PT_I16, PT_U16, PT_I32, PT_U32, PT_I64, PT_U64, PT_STR, PT_BLOB, PT_INVALID
     } Type;
 
-
     Unor4KVStore(): name(DEFAULT_KVSTORE_NAME) {}
 
     bool begin();
@@ -44,8 +43,10 @@ public:
     template<typename T1>
     KVStoreInterface<const char*>::reference<T1> get(const key_t& key, T1 def = 0) { return KVStoreInterface<const char*>::get(key, def); }
 
-    virtual size_t putString(key_t key, const char* value) override;
+    size_t putString(key_t key, const char* value) override;
+    size_t putString(key_t key, String value) override;
     size_t getString(const char* key, char* value, size_t maxLen) override;
+    String getString(key_t key, const String defaultValue = String()) override;
 private:
     const char* name;
 };
