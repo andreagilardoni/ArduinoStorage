@@ -307,7 +307,6 @@ size_t ESP32KVStore::putString(key_t key, const char* value) {
         return 0;
     }
     esp_err_t err = nvs_set_str(_handle, key, value);
-    Serial.println("pino");
 
     if(err){
         log_e("nvs_set_str fail: %s %s", key, nvs_error(err));
@@ -321,6 +320,9 @@ size_t ESP32KVStore::putString(key_t key, const char* value) {
     return strlen(value);
 }
 
+size_t ESP32KVStore::putString(key_t key, String value) {
+    return putString(key, value.c_str());
+}
 
 template<>
 typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<const char*>(const key_t& key, const char* value) {
@@ -492,6 +494,32 @@ size_t ESP32KVStore::getString(const char* key, char* value, size_t maxLen) {
     }
     return len;
 }
+
+String ESP32KVStore::getString(key_t key, const String defaultValue) {
+    size_t len = 0;
+    String res = defaultValue;
+    if(!_started || !key){
+        return res;
+    }
+
+    esp_err_t err = nvs_get_str(_handle, key, NULL, &len);
+    if(err){
+        log_e("nvs_get_str len fail: %s %s", key, nvs_error(err));
+        return res;
+    }
+
+    char *str = new char[len+1];
+
+    getString(key, str, len+1);
+    str[len] = '\0';
+
+    res = str;
+    delete str;
+    str = nullptr;
+
+    return res;
+}
+
 
 // template<>
 // KVStoreInterface<const char*>::reference<string> ESP32KVStore::get<string>(const key_t& key, string defaultValue) {
