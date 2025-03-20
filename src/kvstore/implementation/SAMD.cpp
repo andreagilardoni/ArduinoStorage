@@ -211,4 +211,30 @@ KVStoreInterface<const char*>::reference<uint64_t> SAMDKVStore::get<uint64_t>(co
     return reference<uint64_t>(key, res, *this);
 }
 
+size_t SAMDKVStore::getString(const char* key, char* value, size_t maxLen) {
+    if(!exists(key)) {
+        return 0;
+    }
+
+    size_t len = maxLen;
+    WiFiDrv::prefGet(key, PT_STR, (uint8_t*)value, len);
+
+    return len;
+}
+
+String SAMDKVStore::getString(key_t key, const String defaultValue) { // FIXME this shouldn't require to be redefined
+    size_t len = getBytesLength(key);
+    char *str = new char[len+1];
+
+    getString(key, str, len+1);
+    str[len] = '\0';
+
+    String res(str);
+    delete str;
+    str = nullptr;
+
+    return res;
+}
+
+
 #endif // defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_NANO_RP2040_CONNECT)
