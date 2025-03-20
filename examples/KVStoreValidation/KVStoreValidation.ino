@@ -260,9 +260,6 @@ void setup() {
     kvstore.remove(KEY);
   }
 
-  Serial.print("\n\nNumber of free entries: ");
-  Serial.println(kvstore.freeEntries());
-
   kvstore.end();
   Serial.println("\n\nTesting finished");
 }
