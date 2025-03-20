@@ -1,5 +1,5 @@
 /*
- * This file is part of Arduino_Storage.
+ * This file is part of Arduino_KVStore.
  *
  * Copyright (c) 2024 Arduino SA
  *
@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <Arduino.h>
+#include <math.h>
 
 /** KVStoreInterface class
  *
@@ -168,7 +169,7 @@ public:
      *
      * @returns 1 on correct execution anything else otherwise
      */
-    template<typename T> // TODO define res_t
+    template<typename T> // TODO define res_t // FIXME should these be virtual
     inline res_t put(const key_t& key, T value) { return putBytes(key, (uint8_t*)&value, sizeof(value)); }
 
     /**
@@ -184,7 +185,7 @@ public:
     inline reference<T> get(const key_t& key, const T def = 0) {
         if(exists(key)) {
             T t;
-            getBytes(key, (uint8_t*)&t, sizeof(t));
+            auto res = getBytes(key, (uint8_t*)&t, sizeof(t)); // FIXME res not considered
             return reference<T>(key, t, *this);
         } else {
             return reference<T>(key, def, *this);
@@ -223,7 +224,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putChar(key_t key, int8_t value)                        { return put(key, value); }
+    virtual size_t      putChar(key_t key, const int8_t value)                        { return put(key, value); }
 
     /**
      * @brief put a uchar in the kvstore
@@ -233,7 +234,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putUChar(key_t key, uint8_t value)                      { return put(key, value); }
+    virtual size_t      putUChar(key_t key, const uint8_t value)                      { return put(key, value); }
 
     /**
      * @brief put a short in the kvstore
@@ -243,7 +244,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putShort(key_t key, int16_t value)                      { return put(key, value); }
+    virtual size_t      putShort(key_t key, const int16_t value)                      { return put(key, value); }
 
     /**
      * @brief put a ushort in the kvstore
@@ -253,7 +254,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putUShort(key_t key, uint16_t value)                    { return put(key, value); }
+    virtual size_t      putUShort(key_t key, const uint16_t value)                    { return put(key, value); }
 
     /**
      * @brief put an int in the kvstore
@@ -263,7 +264,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putInt(key_t key, int32_t value)                        { return put(key, value); }
+    virtual size_t      putInt(key_t key, const int32_t value)                        { return put(key, value); }
 
     /**
      * @brief put a uint in the kvstore
@@ -273,7 +274,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putUInt(key_t key, uint32_t value)                      { return put(key, value); }
+    virtual size_t      putUInt(key_t key, const uint32_t value)                      { return put(key, value); }
 
     /**
      * @brief put a long in the kvstore
@@ -283,7 +284,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putLong(key_t key, int32_t value)                       { return put(key, value); }
+    virtual size_t      putLong(key_t key, const int32_t value)                       { return put(key, value); }
 
     /**
      * @brief put a ulong in the kvstore
@@ -293,7 +294,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putULong(key_t key, uint32_t value)                     { return put(key, value); }
+    virtual size_t      putULong(key_t key, const uint32_t value)                     { return put(key, value); }
 
     /**
      * @brief put a long64 in the kvstore
@@ -303,7 +304,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putLong64(key_t key, int64_t value)                     { return put(key, value); }
+    virtual size_t      putLong64(key_t key, const int64_t value)                     { return put(key, value); }
 
     /**
      * @brief put a ulong64 in the kvstore
@@ -313,7 +314,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putULong64(key_t key, uint64_t value)                   { return put(key, value); }
+    virtual size_t      putULong64(key_t key, const uint64_t value)                   { return put(key, value); }
 
     /**
      * @brief put a float in the kvstore
@@ -323,7 +324,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putFloat(key_t key, float value)                        { return put(key, value); }
+    virtual size_t      putFloat(key_t key, const float value)                        { return put(key, value); }
 
     /**
      * @brief put a double in the kvstore
@@ -333,7 +334,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putDouble(key_t key, double value)                      { return put(key, value); }
+    virtual size_t      putDouble(key_t key, const double value)                      { return put(key, value); }
 
     /**
      * @brief put a bool in the kvstore
@@ -343,7 +344,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putBool(key_t key, bool value)                          { return put(key, value); }
+    virtual size_t      putBool(key_t key, const bool value)                          { return put(key, value); }
 
     /**
      * @brief put a C string in the kvstore
@@ -353,7 +354,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putString(key_t key, const char* value)                 { return putBytes(key, (uint8_t*)value, strlen(value)); }
+    virtual size_t      putString(key_t key, const char * const value)                 { return putBytes(key, (uint8_t*)value, strlen(value)); }
 
 #ifdef ARDUINO
     /**
@@ -364,10 +365,8 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putString(key_t key, String value)                      { return putBytes(key, (uint8_t*)value.c_str(), value.length()); }
+    virtual size_t      putString(key_t key, const String value)                      { return putBytes(key, (uint8_t*)value.c_str(), value.length()); }
 #endif // ARDUINO
-
-
 
     /**
      * @brief get a char in the kvstore
@@ -518,6 +517,18 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    // virtual String      getString(key_t key, String defaultValue = String()) const // TODO
+    virtual String getString(key_t key, const String defaultValue = String()) {
+        size_t len = getBytesLength(key);
+        char *str = new char[len+1];
+
+        getString(key, str, len+1);
+        str[len] = '\0';
+
+        String res(str);
+        delete str;
+        str = nullptr;
+
+        return res;
+    }
 #endif // ARDUINO
 };
