@@ -50,7 +50,7 @@ size_t SAMDKVStore::getBytesLength(const key_t& key) const {
 
 
 bool SAMDKVStore::exists(const key_t& key) const {
-    return getBytesLength(key) > 0;
+    return WiFiDrv::prefGetType(key) != PT_INVALID;
 }
 
 // specialization of put and get, when esp nvs treats them differently
@@ -97,6 +97,14 @@ typename KVStoreInterface<const char*>::res_t SAMDKVStore::put<uint64_t>(const k
 template<>
 typename KVStoreInterface<const char*>::res_t SAMDKVStore::put<const char*>(const key_t& key, const char* value) {
     return WiFiDrv::prefPut(key, PT_STR, (uint8_t*) value, strlen(value)+1); // we also send the \0
+}
+
+size_t SAMDKVStore::putString(key_t key, const char* value) {
+    return put(key, value);
+}
+
+size_t SAMDKVStore::putString(key_t key, const String value) {
+    return put(key, value.c_str());
 }
 
 template<>

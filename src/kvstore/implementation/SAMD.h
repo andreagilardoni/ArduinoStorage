@@ -41,8 +41,10 @@ public:
     template<typename T1>
     KVStoreInterface<const char*>::reference<T1> get(const key_t& key, T1 def = 0) { return KVStoreInterface<const char*>::get(key, def); }
 
-    virtual size_t putString(key_t key, const char* value) override; // FIXME
-    size_t getString(const char* key, char* value, size_t maxLen) override; // FIXME
+    size_t putString(key_t key, const char* value) override;
+    size_t putString(key_t key, const String value) override;
+    size_t getString(const char* key, char* value, size_t maxLen) override;
+    String getString(key_t key, const String defaultValue = String()) override;
 private:
     const char* name;
 };
