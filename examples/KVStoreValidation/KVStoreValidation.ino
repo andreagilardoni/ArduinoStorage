@@ -1,5 +1,5 @@
 /*
- * This file is part of Arduino_Storage.
+ * This file is part of Arduino_KVStore.
  *
  * The purpose of this example is to test all the apis available on KVStore
  * on every supported platform and check their conformity to the standard.
@@ -227,10 +227,25 @@ void setup() {
   Serial.println();
   Serial.println();
 
-  Serial.println("Testing String operations");
+  Serial.println("Testing C - String operations");
   if(!test_kvstore("la mia stringsa asdasdafasdjdsnajdnaskjlasda\n\n\r\nsdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjl\r\nOK\r\nERROR",
       &kvstore)) {
-    Serial.println("String test failed");
+    Serial.println("C - String test failed");
+    kvstore.remove(KEY);
+  }
+
+  Serial.println();
+  Serial.println();
+  Serial.println();
+
+  Serial.println("Testing Arduino - String operations");
+  if(!test_kvstore<String>("la mia stringsa asdasdafasdjdsnajdnaskjlasda\n\n\r\nsdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjl\r\nOK\r\nERROR",
+    std::bind(static_cast<size_t(KVStore::*)(const char*, String)>(&KVStore::putString), &kvstore, std::placeholders::_1, std::placeholders::_2),
+    [&kvstore](const char* key) { // we need a lambda, because it requires a default value from apis
+      return kvstore.getString(key);
+    }, &kvstore)) {
+
+    Serial.println("Arduino - String test failed");
     kvstore.remove(KEY);
   }
 
@@ -245,12 +260,9 @@ void setup() {
     kvstore.remove(KEY);
   }
 
-  // Serial.print("\n\nNumber of free entries: ");
-  // Serial.println(kvstore.freeEntries());
+  Serial.print("\n\nNumber of free entries: ");
+  Serial.println(kvstore.freeEntries());
 
-  // res = kvstore.putString(KEY, String value);      // TODO
-
-  // String getString(const char* key, String defaultValue = String());
   kvstore.end();
   Serial.println("\n\nTesting finished");
 }
