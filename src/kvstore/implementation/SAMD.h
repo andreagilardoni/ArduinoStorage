@@ -25,7 +25,7 @@ class SAMDKVStore: public KVStoreInterface<const char*> {
 public:
     SAMDKVStore(const char* name=DEFAULT_KVSTORE_NAME): name(name) {}
     bool begin();
-    bool begin(const char* name);
+    bool begin(const char* name, bool readOnly=false, const char* partitionLabel=nullptr);
     bool end();
     bool clear();
 
@@ -43,8 +43,9 @@ public:
 
     size_t putString(key_t key, const char* value) override;
     size_t putString(key_t key, const String value) override;
-    size_t getString(const char* key, char* value, size_t maxLen) override;
-    String getString(key_t key, const String defaultValue = String()) override;
+    size_t getString(key_t key, char* value, size_t maxLen) override;
+    using KVStoreInterface<const char*>::getString;
+
 private:
     const char* name;
 };

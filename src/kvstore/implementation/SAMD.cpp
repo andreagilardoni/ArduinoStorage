@@ -12,11 +12,9 @@
 
 #include "SAMD.h"
 
-bool SAMDKVStore::begin(const char* name) {
-    bool readOnly=false; const char* partition_label=NULL; // FIXME this was a parameter
-
+bool SAMDKVStore::begin(const char* name, bool readOnly, const char* partitionLabel) {
     WiFiDrv::wifiDriverInit();
-    return WiFiDrv::prefBegin(name, readOnly, partition_label);
+    return WiFiDrv::prefBegin(name, readOnly, partitionLabel);
 }
 
 bool SAMDKVStore::begin() {
@@ -221,20 +219,5 @@ size_t SAMDKVStore::getString(const char* key, char* value, size_t maxLen) {
 
     return len;
 }
-
-String SAMDKVStore::getString(key_t key, const String defaultValue) { // FIXME this shouldn't require to be redefined
-    size_t len = getBytesLength(key);
-    char *str = new char[len+1];
-
-    getString(key, str, len+1);
-    str[len] = '\0';
-
-    String res(str);
-    delete str;
-    str = nullptr;
-
-    return res;
-}
-
 
 #endif // defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_NANO_RP2040_CONNECT)
