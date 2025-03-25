@@ -354,7 +354,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putString(key_t key, const char * const value)                 { return putBytes(key, (uint8_t*)value, strlen(value)); }
+    virtual size_t      putString(key_t key, const char * const value)                { return putBytes(key, (uint8_t*)value, strlen(value)); }
 
 #ifdef ARDUINO
     /**
@@ -476,7 +476,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual float       getFloat(key_t key, const float defaultValue = NAN)             { return get(key, defaultValue); }
+    virtual float       getFloat(key_t key, const float defaultValue = NAN)           { return get(key, defaultValue); }
 
     /**
      * @brief get a double in the kvstore
@@ -486,7 +486,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual double      getDouble(key_t key, const double defaultValue = NAN)           { return get(key, defaultValue); }
+    virtual double      getDouble(key_t key, const double defaultValue = NAN)         { return get(key, defaultValue); }
 
     /**
      * @brief get a bool in the kvstore
@@ -506,7 +506,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual size_t      getString(key_t key, char* value, size_t maxLen)        { return getBytes(key, (uint8_t*)value, maxLen); }
+    virtual size_t      getString(key_t key, char* value, size_t maxLen)              { return getBytes(key, (uint8_t*)value, maxLen); }
 
 #ifdef ARDUINO
     /**
