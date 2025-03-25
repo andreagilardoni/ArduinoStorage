@@ -15,7 +15,6 @@
 #include "QSPIFlashBlockDevice.h"
 #include "MBRBlockDevice.h"
 
-// FIXME find the proper macro/enum
 #define QSPIF_BD_ERROR_OK 0
 
 class PortentaC33KVStore: public KVStoreInterface<const char*> {
