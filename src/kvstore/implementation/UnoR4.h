@@ -38,10 +38,10 @@ public:
     size_t getBytesLength(const key_t& key) const override;
 
     template<typename T1>
-    typename KVStoreInterface<const char*>::res_t put(const key_t& key, T1 value) { return KVStoreInterface<const char*>::put(key, value); }
+    typename KVStoreInterface<const char*>::res_t put(const key_t& key, T1 value) override { return KVStoreInterface<const char*>::put(key, value); }
 
     template<typename T1>
-    KVStoreInterface<const char*>::reference<T1> get(const key_t& key, T1 def = 0) { return KVStoreInterface<const char*>::get(key, def); }
+    KVStoreInterface<const char*>::reference<T1> get(const key_t& key, T1 def = 0) override { return KVStoreInterface<const char*>::get(key, def); }
 
     size_t putString(key_t key, const char* value) override;
     size_t putString(key_t key, String value) override;
