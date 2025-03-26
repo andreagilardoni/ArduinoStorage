@@ -41,7 +41,7 @@ bool STM32H7KVStore::begin(bool reformat, mbed::KVStore* store) {
         int res = bd->init();
         if (res != QSPIF_BD_ERROR_OK && !reformat) {
             Serial.println(F("Error: QSPI is not properly formatted, "
-                "run QSPIformat.ino set reformat to true"));
+                "run QSPIformat.ino or set reformat to true"));
             return false;
         } else if (res != QSPIF_BD_ERROR_OK && reformat) {
             Serial.println(F("Error: QSPI is not properly formatted, "
@@ -56,7 +56,6 @@ bool STM32H7KVStore::begin(bool reformat, mbed::KVStore* store) {
             mbed::MBRBlockDevice::partition(root, 1, 0x0B, 0, 1024 * 1024);
             mbed::MBRBlockDevice::partition(root, 2, 0x0B, 1024 * 1024, 13 * 1024 * 1024);
             mbed::MBRBlockDevice::partition(root, 3, 0x0B, 13 * 1024 * 1024, 14 * 1024 * 1024);
-            mbed::MBRBlockDevice::partition(root, 4, 0x0B, 14 * 1024 * 1024, 14 * 1024 * 1024);
         }
 
         kvstore = new mbed::TDBStore(bd);
