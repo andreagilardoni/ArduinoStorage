@@ -43,7 +43,6 @@ public:
 
         // assign a new value to the reference and update the store
         reference& operator=(T t) noexcept {
-            printf("save the value\n");
             value = t;
             this->save();
             return *this;
@@ -62,7 +61,7 @@ public:
         operator T () noexcept       { return getValue(); }
 
         inline key_t getKey() const  { return key; }
-        inline T getValue()          { load(); return value; } // FIXME is it ok to load it every time?
+        inline T getValue()          { return value; }
 
         // load the stored value
         void load()                  { value = owner.get<T>(key).value; }
@@ -81,7 +80,6 @@ public:
 
         KVStoreInterface<Key>& owner;
     };
-    // static constexpr reference<void*> NullReference = reference<void*>(0, nullptr); // TODO
 
     /**
      * @brief virtual empty destructor
@@ -140,7 +138,6 @@ public:
 
     /**
      * @brief get values from the store provinding a byte array
-     * TODO make this better
      *
      * @param[in]  key              Key to get
      * @param[out] b                byte array
@@ -152,7 +149,6 @@ public:
 
     /**
      * @brief get the number of bytes used by a certain value referenced by key
-     * TODO make this better
      *
      * @param[in]  key              Key
      *
