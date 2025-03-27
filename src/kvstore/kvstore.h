@@ -22,10 +22,10 @@
  * and as a consequence all the other methods will work out of the box.
  * If some datatypes have optimizations, put and get methods can be overwritten and specialized for them
  */
-template<typename Key=const char*>
 class KVStoreInterface {
 public:
 
+    typedef const char* Key;
     typedef Key key_t;
     typedef int res_t;
 
@@ -78,7 +78,7 @@ public:
         const key_t key;
         T value;
 
-        KVStoreInterface<Key>& owner;
+        KVStoreInterface& owner;
     };
 
     /**
