@@ -1,3 +1,13 @@
+/*
+ * This file is part of Arduino_KVStore.
+ *
+ * Copyright (c) 2024 Arduino SA
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_template_test_macros.hpp>
 
@@ -7,39 +17,35 @@
 #include <cstring>
 #include <stdexcept>
 
-template<typename Key=const char*>
-class KVStore: public KVStoreInterface<Key> {
+class KVStore: public KVStoreInterface {
 public:
     bool begin() { return true; }
     bool end()   { return true; }
     bool clear();
 
-    typename KVStoreInterface<Key>::res_t remove(const Key& key) override;
+    typename KVStoreInterface::res_t remove(const Key& key) override;
     bool exists(const Key& key) const override;
-    typename KVStoreInterface<Key>::res_t putBytes(const Key& key, uint8_t b[], size_t s) override;
-    typename KVStoreInterface<Key>::res_t getBytes(const Key& key, uint8_t b[], size_t s) const override;
+    typename KVStoreInterface::res_t putBytes(const Key& key, uint8_t b[], size_t s) override;
+    typename KVStoreInterface::res_t getBytes(const Key& key, uint8_t b[], size_t s) const override;
     size_t getBytesLength(const Key& key) const override;
 
 private:
     std::map<Key, std::pair<uint8_t*, size_t>> kvmap;
 };
 
-template<typename Key>
-bool KVStore<Key>::clear() {
+bool KVStore::clear() {
     kvmap.clear();
 
     return true;
 }
 
-template<typename Key>
-typename KVStoreInterface<Key>::res_t KVStore<Key>::remove(const Key& key) {
+typename KVStoreInterface::res_t KVStore::remove(const Key& key) {
     kvmap.erase(key);
 
     return 0;
 }
 
-template<typename Key>
-bool KVStore<Key>::exists(const Key& key) const {
+bool KVStore::exists(const Key& key) const {
     try {
         kvmap.at(key);
         return true;
@@ -48,8 +54,7 @@ bool KVStore<Key>::exists(const Key& key) const {
     }
 }
 
-template<typename Key>
-typename KVStoreInterface<Key>::res_t KVStore<Key>::putBytes(const Key& key, uint8_t b[], size_t s) {
+typename KVStoreInterface::res_t KVStore::putBytes(const Key& key, uint8_t b[], size_t s) {
     uint8_t* buf = new uint8_t[s];
     std::memset(buf, 0, s);
     std::memcpy(buf, b, s);
@@ -59,8 +64,7 @@ typename KVStoreInterface<Key>::res_t KVStore<Key>::putBytes(const Key& key, uin
     return s;
 }
 
-template<typename Key>
-typename KVStoreInterface<Key>::res_t KVStore<Key>::getBytes(const Key& key, uint8_t *b, size_t s) const {
+typename KVStoreInterface::res_t KVStore::getBytes(const Key& key, uint8_t *b, size_t s) const {
     auto el = kvmap.at(key);
 
     std::memcpy(b, el.first, s <= el.second? s : el.second);
@@ -68,17 +72,14 @@ typename KVStoreInterface<Key>::res_t KVStore<Key>::getBytes(const Key& key, uin
     return el.second;
 }
 
-template<typename Key>
-size_t KVStore<Key>::getBytesLength(const Key& key) const {
+size_t KVStore::getBytesLength(const Key& key) const {
     auto el = kvmap.at(key);
 
     return el.second;
 }
 
-
-
 TEST_CASE( "KVStore can store values of different types, get them and remove them", "[kvstore][putgetremove]" ) {
-    KVStore<const char*> store;
+    KVStore store;
     store.begin();
 
     SECTION( "adding a char and getting it back" ) {
@@ -136,7 +137,7 @@ TEST_CASE( "KVStore can store values of different types, get them and remove the
 
 
 TEST_CASE( "KVStore references are a useful tool to indirectly access kvstore", "[kvstore][references]" ) {
-    KVStore<const char*> store;
+    KVStore store;
     store.begin();
 
     REQUIRE( store.put("0", (uint8_t) 0x55) == 1);
@@ -179,6 +180,7 @@ TEST_CASE( "KVStore references are a useful tool to indirectly access kvstore", 
         REQUIRE(ref2 == 0x55555555);
 
         ref1 = 0x56565656;
+        ref2.load();
 
         REQUIRE(ref2 == 0x56565656);
     }

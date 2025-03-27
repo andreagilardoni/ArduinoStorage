@@ -23,6 +23,7 @@ include_directories(../../src)
 
 set(TEST_SRCS
   src/kvstore/test_kvstore.cpp
+  src/kvstore/test_kvstore_type.cpp
 )
 
 ##########################################################################
