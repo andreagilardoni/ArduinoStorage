@@ -11,8 +11,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+
+#ifdef ARDUINO
 #include <Arduino.h>
+#endif // ARDUINO
+
 #include <math.h>
+#include <type_traits>
 
 /** KVStoreInterface class
  *
@@ -28,6 +33,19 @@ public:
     typedef const char* Key;
     typedef Key key_t;
     typedef int res_t;
+
+    typedef enum {
+        PT_I8, PT_U8, PT_I16, PT_U16, PT_I32, PT_U32, PT_I64, PT_U64, PT_STR, PT_BLOB, PT_INVALID
+    } Type;
+
+    // TODO this is an utility function for kvstore should this stay here?
+    /**
+     * @brief This function translate a cpp kind to a Preferences Type at compiletime
+     *
+     * @returns the corresponding Type of the passed parameter
+     */
+    template<typename T>
+    static constexpr Type getType(T t);
 
     // proxy class to allow operator[] with assignment
 
@@ -61,7 +79,7 @@ public:
         operator T () noexcept       { return getValue(); }
 
         inline key_t getKey() const  { return key; }
-        inline T getValue()          { return value; }
+        inline T getValue()          { return value; } // TODO Should we load everytime we call getValue
 
         // load the stored value
         void load()                  { value = owner.get<T>(key).value; }
@@ -165,8 +183,8 @@ public:
      *
      * @returns 1 on correct execution anything else otherwise
      */
-    template<typename T> // TODO define res_t // FIXME should these be virtual
-    inline res_t put(const key_t& key, T value) { return putBytes(key, (uint8_t*)&value, sizeof(value)); }
+    template<typename T>
+    inline res_t put(const key_t& key, T value) { return _put(key, (uint8_t*)&value, sizeof(value), getType(value)); }
 
     /**
      * @brief templated method that gets a value of a certain type T. If it doesn't exist in the store a
@@ -181,7 +199,8 @@ public:
     inline reference<T> get(const key_t& key, const T def = 0) {
         if(exists(key)) {
             T t;
-            auto res = getBytes(key, (uint8_t*)&t, sizeof(t)); // FIXME res not considered
+            _get(key, (uint8_t*)&t, sizeof(t), getType(t));
+            // TODO result not considered, put an assertion maybe?
             return reference<T>(key, t, *this);
         } else {
             return reference<T>(key, def, *this);
@@ -527,4 +546,50 @@ public:
         return res;
     }
 #endif // ARDUINO
+
+protected:
+    // some implementations may need type-specific get and put methods, this can be performed by passing
+    // type information as parameter to the get call and overcome the limitation of not being able to
+    // override a templated method in cpp
+
+    virtual res_t _put(const key_t& key, uint8_t* value, size_t len, Type t) {
+        (void) t;
+
+        return putBytes(key, value, len);
+    }
+
+    virtual res_t _get(const key_t& key, uint8_t* value, size_t len, Type t) {
+        (void) t;
+
+        if(exists(key)) {
+            return getBytes(key, value, len);
+        } else {
+            return 0;
+        }
+    }
 };
+
+template<typename T>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType(T t) {
+    (void) t;
+    if(std::is_same<T, int8_t>::value)             { return PT_I8;
+    } else if(std::is_same<T, uint8_t>::value)     { return PT_U8;
+    } else if(std::is_same<T, int16_t>::value)     { return PT_I16;
+    } else if(std::is_same<T, uint16_t>::value)    { return PT_U16;
+    } else if(std::is_same<T, int32_t>::value)     { return PT_I32;
+    } else if(std::is_same<T, uint32_t>::value)    { return PT_U32;
+    } else if(std::is_same<T, int64_t>::value)     { return PT_I64;
+    } else if(std::is_same<T, uint64_t>::value)    { return PT_U64;
+    } else if(std::is_same<T, char*>::value)       { return PT_STR;
+    } else if(std::is_same<T, const char*>::value) { return PT_STR;
+    } else if(std::is_same<T, char const *>::value) { return PT_STR;
+    } else if(std::is_same<T, uint8_t*>::value)    { return PT_BLOB;
+    }
+    return PT_INVALID;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<char*>(char* t) {
+    (void) t;
+    return PT_STR;
+}
