@@ -20,8 +20,8 @@ const char KEY[] = "arduino";
 
 template<class T>
 bool test_kvstore(T value,
-    std::function<size_t(const char*, T)> putf,
-    std::function<T(const char*)> getf,
+    std::function<size_t(const char* const, T)> putf,
+    std::function<T(const char* const)> getf,
     KVStore *kvstore) {
   // we are going now to test all the apis of kvstore:
   // .1 We check that the key do not exist
@@ -84,8 +84,8 @@ bool test_kvstore(T value,
 
 template<>
 bool test_kvstore(String value,
-  std::function<size_t(const char*, String)> putf,
-  std::function<String(const char*)> getf,
+  std::function<size_t(const char* const, String)> putf,
+  std::function<String(const char* const)> getf,
   KVStore *kvstore) {
 // we are going now to test all the apis of kvstore:
 // .1 We check that the key do not exist
@@ -146,7 +146,7 @@ if(!kvstore->remove(KEY)) {
 return true;
 }
 
-bool test_kvstore(char* value, KVStore *kvstore) {
+bool test_kvstore(const char* value, KVStore *kvstore) {
   // we are going now to test all the apis of kvstore:
   // .1 We check that the key do not exist
   // .2 we put a value inside the KVStore

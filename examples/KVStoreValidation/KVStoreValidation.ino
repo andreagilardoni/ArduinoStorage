@@ -107,6 +107,21 @@ void setup() {
   Serial.println();
   Serial.println();
 
+  Serial.println("Testing Int operations with negative value");
+  if(!test_kvstore<int32_t>(-12345678,
+    std::bind(&KVStore::putInt, &kvstore, std::placeholders::_1, std::placeholders::_2),
+    [&kvstore](const char* key) { // we need a lambda, because it requires a default value from apis
+      return kvstore.getInt(key);
+    }, &kvstore)) {
+
+    Serial.println("Int test failed");
+    kvstore.remove(KEY);
+  }
+
+  Serial.println();
+  Serial.println();
+  Serial.println();
+
   Serial.println("Testing UInt operations");
   if(!test_kvstore<uint32_t>(0x50505050,
     std::bind(&KVStore::putUInt, &kvstore, std::placeholders::_1, std::placeholders::_2),
@@ -240,7 +255,7 @@ void setup() {
 
   Serial.println("Testing Arduino - String operations");
   if(!test_kvstore<String>("la mia stringsa asdasdafasdjdsnajdnaskjlasda\n\n\r\nsdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjlasdasdafasdjdsnajdnaskjl\r\nOK\r\nERROR",
-    std::bind(static_cast<size_t(KVStore::*)(const char*, String)>(&KVStore::putString), &kvstore, std::placeholders::_1, std::placeholders::_2),
+    std::bind(static_cast<size_t(KVStore::*)(const char* const&, String)>(&KVStore::putString), &kvstore, std::placeholders::_1, std::placeholders::_2),
     [&kvstore](const char* key) { // we need a lambda, because it requires a default value from apis
       return kvstore.getString(key);
     }, &kvstore)) {
