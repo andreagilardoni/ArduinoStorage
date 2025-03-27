@@ -35,7 +35,7 @@ public:
     typedef int res_t;
 
     typedef enum {
-        PT_I8, PT_U8, PT_I16, PT_U16, PT_I32, PT_U32, PT_I64, PT_U64, PT_STR, PT_BLOB, PT_INVALID
+        PT_I8, PT_U8, PT_I16, PT_U16, PT_I32, PT_U32, PT_I64, PT_U64, PT_STR, PT_BLOB, PT_INVALID, PT_FLOAT, PT_DOUBLE,
     } Type;
 
     // TODO this is an utility function for kvstore should this stay here?
@@ -57,7 +57,8 @@ public:
     template<typename T>
     class reference {
     public:
-        reference(const key_t &key, T value, KVStoreInterface& owner): key(key), value(value), owner(owner) {}
+        reference(const key_t &key, const T& value, KVStoreInterface& owner)
+        : key(key), value(value), owner(owner) {}
 
         // assign a new value to the reference and update the store
         reference& operator=(T t) noexcept {
@@ -73,13 +74,13 @@ public:
         }
 
         // get the referenced value
-        T operator*() noexcept       { return getValue(); }
+        T operator*() const noexcept { return getValue(); }
 
         // cast the reference to the value it contains -> get the value references
-        operator T () noexcept       { return getValue(); }
+        operator T () const noexcept { return getValue(); }
 
         inline key_t getKey() const  { return key; }
-        inline T getValue()          { return value; } // TODO Should we load everytime we call getValue
+        inline T getValue() const    { return value; } // TODO Should we load everytime we call getValue
 
         // load the stored value
         void load()                  { value = owner.get<T>(key).value; }
@@ -152,7 +153,7 @@ public:
      *
      * @returns 1 on correct execution anything else otherwise
      */
-    virtual res_t putBytes(const key_t& key, uint8_t *b, size_t s) = 0;
+    virtual res_t putBytes(const key_t& key, const uint8_t b[], size_t s) = 0;
 
     /**
      * @brief get values from the store provinding a byte array
@@ -163,7 +164,7 @@ public:
      *
      * @returns 1 on correct execution anything else otherwise
      */
-    virtual res_t getBytes(const key_t& key, uint8_t *b, size_t s) const = 0;
+    virtual res_t getBytes(const key_t& key, uint8_t b[], size_t s) const = 0;
 
     /**
      * @brief get the number of bytes used by a certain value referenced by key
@@ -183,8 +184,8 @@ public:
      *
      * @returns 1 on correct execution anything else otherwise
      */
-    template<typename T>
-    inline res_t put(const key_t& key, T value) { return _put(key, (uint8_t*)&value, sizeof(value), getType(value)); }
+    template<typename T> // TODO handle std::string
+    res_t put(const key_t& key, T value);
 
     /**
      * @brief templated method that gets a value of a certain type T. If it doesn't exist in the store a
@@ -195,18 +196,8 @@ public:
      *
      * @returns a reference to the desired key
      */
-    template<typename T>
-    inline reference<T> get(const key_t& key, const T def = 0) {
-        if(exists(key)) {
-            T t;
-            _get(key, (uint8_t*)&t, sizeof(t), getType(t));
-            // TODO result not considered, put an assertion maybe?
-            return reference<T>(key, t, *this);
-        } else {
-            return reference<T>(key, def, *this);
-        }
-    }
-
+    template<typename T> // TODO this could be called when class is const
+    reference<T> get(const key_t& key, const T def = 0);
     /**
      * @brief RW direct access to a value with the operator[]
      *
@@ -215,7 +206,7 @@ public:
      * @returns a reference to the desired key
      */
     template<typename T>
-    reference<T>& operator[](const key_t& key) { // write access to the value
+    inline reference<T>& operator[](const key_t& key) { // write access to the value
         return get<T>(key);
     }
 
@@ -227,10 +218,11 @@ public:
      * @returns a read-only reference to the desired key
      */
     template<typename T>
-    const reference<T>& operator[](const key_t& key) const { // ro access to the value
+    inline const reference<T>& operator[](const key_t& key) const { // ro access to the value
         return get<T>(key);
     }
 
+    // TODO all these methods should be const
     /**
      * @brief put a char in the kvstore
      *
@@ -239,7 +231,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putChar(key_t key, const int8_t value)                        { return put(key, value); }
+    virtual size_t putChar(const key_t& key, const int8_t value);
 
     /**
      * @brief put a uchar in the kvstore
@@ -249,7 +241,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putUChar(key_t key, const uint8_t value)                      { return put(key, value); }
+    virtual size_t putUChar(const key_t& key, const uint8_t value);
 
     /**
      * @brief put a short in the kvstore
@@ -259,7 +251,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putShort(key_t key, const int16_t value)                      { return put(key, value); }
+    virtual size_t putShort(const key_t& key, const int16_t value);
 
     /**
      * @brief put a ushort in the kvstore
@@ -269,7 +261,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putUShort(key_t key, const uint16_t value)                    { return put(key, value); }
+    virtual size_t putUShort(const key_t& key, const uint16_t value);
 
     /**
      * @brief put an int in the kvstore
@@ -279,7 +271,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putInt(key_t key, const int32_t value)                        { return put(key, value); }
+    virtual size_t putInt(const key_t& key, const int32_t value);
 
     /**
      * @brief put a uint in the kvstore
@@ -289,7 +281,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putUInt(key_t key, const uint32_t value)                      { return put(key, value); }
+    virtual size_t putUInt(const key_t& key, const uint32_t value);
 
     /**
      * @brief put a long in the kvstore
@@ -299,7 +291,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putLong(key_t key, const int32_t value)                       { return put(key, value); }
+    virtual size_t putLong(const key_t& key, const int32_t value);
 
     /**
      * @brief put a ulong in the kvstore
@@ -309,7 +301,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putULong(key_t key, const uint32_t value)                     { return put(key, value); }
+    virtual size_t putULong(const key_t& key, const uint32_t value);
 
     /**
      * @brief put a long64 in the kvstore
@@ -319,7 +311,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putLong64(key_t key, const int64_t value)                     { return put(key, value); }
+    virtual size_t putLong64(const key_t& key, const int64_t value);
 
     /**
      * @brief put a ulong64 in the kvstore
@@ -329,7 +321,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putULong64(key_t key, const uint64_t value)                   { return put(key, value); }
+    virtual size_t putULong64(const key_t& key, const uint64_t value);
 
     /**
      * @brief put a float in the kvstore
@@ -339,7 +331,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putFloat(key_t key, const float value)                        { return put(key, value); }
+    virtual size_t putFloat(const key_t& key, const float value);
 
     /**
      * @brief put a double in the kvstore
@@ -349,7 +341,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putDouble(key_t key, const double value)                      { return put(key, value); }
+    virtual size_t putDouble(const key_t& key, const double value);
 
     /**
      * @brief put a bool in the kvstore
@@ -359,7 +351,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putBool(key_t key, const bool value)                          { return put(key, value); }
+    virtual size_t putBool(const key_t& key, const bool value);
 
     /**
      * @brief put a C string in the kvstore
@@ -369,7 +361,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putString(key_t key, const char * const value)                { return putBytes(key, (uint8_t*)value, strlen(value)); }
+    virtual size_t putString(const key_t& key, const char * const value);
 
 #ifdef ARDUINO
     /**
@@ -380,7 +372,7 @@ public:
      *
      * @returns the size of the inserted value
      */
-    virtual size_t      putString(key_t key, const String value)                      { return putBytes(key, (uint8_t*)value.c_str(), value.length()); }
+    virtual size_t putString(const key_t& key, const String value);
 #endif // ARDUINO
 
     /**
@@ -391,7 +383,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int8_t      getChar(key_t key, const int8_t defaultValue = 0)             { return get(key, defaultValue); }
+    virtual int8_t      getChar(const key_t& key, const int8_t defaultValue = 0);
 
     /**
      * @brief get a uchar in the kvstore
@@ -401,7 +393,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint8_t     getUChar(key_t key, const uint8_t defaultValue = 0)           { return get(key, defaultValue); }
+    virtual uint8_t     getUChar(const key_t& key, const uint8_t defaultValue = 0);
 
     /**
      * @brief get a short in the kvstore
@@ -411,7 +403,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int16_t     getShort(key_t key, const int16_t defaultValue = 0)           { return get(key, defaultValue); }
+    virtual int16_t     getShort(const key_t& key, const int16_t defaultValue = 0);
 
     /**
      * @brief get a ushort in the kvstore
@@ -421,7 +413,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint16_t    getUShort(key_t key, const uint16_t defaultValue = 0)         { return get(key, defaultValue); }
+    virtual uint16_t    getUShort(const key_t& key, const uint16_t defaultValue = 0);
 
     /**
      * @brief get an int in the kvstore
@@ -431,7 +423,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int32_t     getInt(key_t key, const int32_t defaultValue = 0)             { return get(key, defaultValue); }
+    virtual int32_t     getInt(const key_t& key, const int32_t defaultValue = 0);
 
     /**
      * @brief get a uint in the kvstore
@@ -441,7 +433,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint32_t    getUInt(key_t key, const uint32_t defaultValue = 0)           { return get(key, defaultValue); }
+    virtual uint32_t    getUInt(const key_t& key, const uint32_t defaultValue = 0);
 
     /**
      * @brief get a long in the kvstore
@@ -451,7 +443,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int32_t     getLong(key_t key, const int32_t defaultValue = 0)            { return get(key, defaultValue); }
+    virtual int32_t     getLong(const key_t& key, const int32_t defaultValue = 0);
 
     /**
      * @brief get a ulong in the kvstore
@@ -461,7 +453,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint32_t    getULong(key_t key, const uint32_t defaultValue = 0)          { return get(key, defaultValue); }
+    virtual uint32_t    getULong(const key_t& key, const uint32_t defaultValue = 0);
 
     /**
      * @brief get a long64 in the kvstore
@@ -471,7 +463,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual int64_t     getLong64(key_t key, const int64_t defaultValue = 0)          { return get(key, defaultValue); }
+    virtual int64_t     getLong64(const key_t& key, const int64_t defaultValue = 0);
 
     /**
      * @brief get a ulong64 in the kvstore
@@ -481,7 +473,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual uint64_t    getULong64(key_t key, const uint64_t defaultValue = 0)        { return get(key, defaultValue); }
+    virtual uint64_t    getULong64(const key_t& key, const uint64_t defaultValue = 0);
 
     /**
      * @brief get a float in the kvstore
@@ -491,7 +483,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual float       getFloat(key_t key, const float defaultValue = NAN)           { return get(key, defaultValue); }
+    virtual float       getFloat(const key_t& key, const float defaultValue = NAN);
 
     /**
      * @brief get a double in the kvstore
@@ -501,7 +493,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual double      getDouble(key_t key, const double defaultValue = NAN)         { return get(key, defaultValue); }
+    virtual double      getDouble(const key_t& key, const double defaultValue = NAN);
 
     /**
      * @brief get a bool in the kvstore
@@ -511,7 +503,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual bool        getBool(key_t key, const bool defaultValue = false)           { return get(key, defaultValue); }
+    virtual bool        getBool(const key_t& key, const bool defaultValue = false);
 
     /**
      * @brief get a C string in the kvstore
@@ -521,7 +513,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual size_t      getString(key_t key, char* value, size_t maxLen)              { return getBytes(key, (uint8_t*)value, maxLen); }
+    virtual size_t      getString(const key_t& key, char* value, size_t maxLen);
 
 #ifdef ARDUINO
     /**
@@ -532,19 +524,7 @@ public:
      *
      * @returns the value present in the kvstore or defaultValue if not present
      */
-    virtual String getString(key_t key, const String defaultValue = String()) {
-        size_t len = getBytesLength(key);
-        char *str = new char[len+1];
-
-        getString(key, str, len+1);
-        str[len] = '\0';
-
-        String res(str);
-        delete str;
-        str = nullptr;
-
-        return res;
-    }
+    virtual String getString(const key_t& key, const String defaultValue = String());
 #endif // ARDUINO
 
 protected:
@@ -552,38 +532,29 @@ protected:
     // type information as parameter to the get call and overcome the limitation of not being able to
     // override a templated method in cpp
 
-    virtual res_t _put(const key_t& key, uint8_t* value, size_t len, Type t) {
-        (void) t;
+    virtual res_t _put(const key_t& key, const uint8_t value[], size_t len, Type t);
 
-        return putBytes(key, value, len);
-    }
-
-    virtual res_t _get(const key_t& key, uint8_t* value, size_t len, Type t) {
-        (void) t;
-
-        if(exists(key)) {
-            return getBytes(key, value, len);
-        } else {
-            return 0;
-        }
-    }
+    virtual res_t _get(const key_t& key, uint8_t value[], size_t len, Type t);
 };
 
 template<typename T>
 constexpr typename KVStoreInterface::Type KVStoreInterface::getType(T t) {
     (void) t;
-    if(std::is_same<T, int8_t>::value)             { return PT_I8;
-    } else if(std::is_same<T, uint8_t>::value)     { return PT_U8;
-    } else if(std::is_same<T, int16_t>::value)     { return PT_I16;
-    } else if(std::is_same<T, uint16_t>::value)    { return PT_U16;
-    } else if(std::is_same<T, int32_t>::value)     { return PT_I32;
-    } else if(std::is_same<T, uint32_t>::value)    { return PT_U32;
-    } else if(std::is_same<T, int64_t>::value)     { return PT_I64;
-    } else if(std::is_same<T, uint64_t>::value)    { return PT_U64;
-    } else if(std::is_same<T, char*>::value)       { return PT_STR;
-    } else if(std::is_same<T, const char*>::value) { return PT_STR;
+    if(std::is_same<T, int8_t>::value)              { return PT_I8;
+    } else if(std::is_same<T, uint8_t>::value)      { return PT_U8;
+    } else if(std::is_same<T, bool>::value)         { return PT_I8;
+    } else if(std::is_same<T, int16_t>::value)      { return PT_I16;
+    } else if(std::is_same<T, uint16_t>::value)     { return PT_U16;
+    } else if(std::is_same<T, int32_t>::value)      { return PT_I32;
+    } else if(std::is_same<T, uint32_t>::value)     { return PT_U32;
+    } else if(std::is_same<T, int64_t>::value)      { return PT_I64;
+    } else if(std::is_same<T, uint64_t>::value)     { return PT_U64;
+    } else if(std::is_same<T, float>::value)        { return PT_FLOAT;
+    } else if(std::is_same<T, double>::value)       { return PT_DOUBLE;
+    } else if(std::is_same<T, char*>::value)        { return PT_STR;
+    } else if(std::is_same<T, const char*>::value)  { return PT_STR;
     } else if(std::is_same<T, char const *>::value) { return PT_STR;
-    } else if(std::is_same<T, uint8_t*>::value)    { return PT_BLOB;
+    } else if(std::is_same<T, uint8_t*>::value)     { return PT_BLOB;
     }
     return PT_INVALID;
 }
