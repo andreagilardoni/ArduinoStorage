@@ -15,7 +15,7 @@
 #include "QSPIFBlockDevice.h"
 #include "MBRBlockDevice.h"
 
-class STM32H7KVStore: public KVStoreInterface<const char*> {
+class STM32H7KVStore: public KVStoreInterface {
 public:
     STM32H7KVStore();
     ~STM32H7KVStore() { end(); }
@@ -25,10 +25,10 @@ public:
     bool end() override;
     bool clear() override;
 
-    typename KVStoreInterface<const char*>::res_t remove(const key_t& key) override;
+    typename KVStoreInterface::res_t remove(const key_t& key) override;
     bool exists(const key_t& key) const override;
-    typename KVStoreInterface<const char*>::res_t putBytes(const key_t& key, uint8_t b[], size_t s) override;
-    typename KVStoreInterface<const char*>::res_t getBytes(const key_t& key, uint8_t b[], size_t s) const override;
+    typename KVStoreInterface::res_t putBytes(const key_t& key, const uint8_t b[], size_t s) override;
+    typename KVStoreInterface::res_t getBytes(const key_t& key, uint8_t b[], size_t s) const override;
     size_t getBytesLength(const key_t& key) const override;
 private:
     mbed::MBRBlockDevice* bd;
