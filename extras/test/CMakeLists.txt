@@ -26,6 +26,9 @@ set(TEST_SRCS
   src/kvstore/test_kvstore_type.cpp
 )
 
+set(TEST_DUT_SRCS
+  ../../src/kvstore/kvstore.cpp
+)
 ##########################################################################
 
 add_compile_definitions(HOST)
