@@ -25,7 +25,7 @@ public:
 
     typename KVStoreInterface::res_t remove(const Key& key) override;
     bool exists(const Key& key) const override;
-    typename KVStoreInterface::res_t putBytes(const Key& key, uint8_t b[], size_t s) override;
+    typename KVStoreInterface::res_t putBytes(const Key& key, const uint8_t b[], size_t s) override;
     typename KVStoreInterface::res_t getBytes(const Key& key, uint8_t b[], size_t s) const override;
     size_t getBytesLength(const Key& key) const override;
 
@@ -54,7 +54,7 @@ bool KVStore::exists(const Key& key) const {
     }
 }
 
-typename KVStoreInterface::res_t KVStore::putBytes(const Key& key, uint8_t b[], size_t s) {
+typename KVStoreInterface::res_t KVStore::putBytes(const Key& key, const uint8_t b[], size_t s) {
     uint8_t* buf = new uint8_t[s];
     std::memset(buf, 0, s);
     std::memcpy(buf, b, s);
@@ -64,7 +64,7 @@ typename KVStoreInterface::res_t KVStore::putBytes(const Key& key, uint8_t b[], 
     return s;
 }
 
-typename KVStoreInterface::res_t KVStore::getBytes(const Key& key, uint8_t *b, size_t s) const {
+typename KVStoreInterface::res_t KVStore::getBytes(const Key& key, uint8_t b[], size_t s) const {
     auto el = kvmap.at(key);
 
     std::memcpy(b, el.first, s <= el.second? s : el.second);

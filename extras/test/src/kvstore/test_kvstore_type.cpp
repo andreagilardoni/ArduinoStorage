@@ -22,6 +22,8 @@ TEST_CASE( "Testing KVStore getType utility function", "[kvstore][utility]" ) {
     REQUIRE(KVStoreInterface::getType((uint32_t) 0x55)      == KVStoreInterface::PT_U32);
     REQUIRE(KVStoreInterface::getType((int64_t) 0x55)       == KVStoreInterface::PT_I64);
     REQUIRE(KVStoreInterface::getType((uint64_t) 0x55)      == KVStoreInterface::PT_U64);
+    REQUIRE(KVStoreInterface::getType((bool) true)          == KVStoreInterface::PT_I8);
+
 
     char string[] = "my test string";
     REQUIRE(KVStoreInterface::getType(string)               == KVStoreInterface::PT_STR);
