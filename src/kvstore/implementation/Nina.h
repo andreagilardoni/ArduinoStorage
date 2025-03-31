@@ -20,10 +20,10 @@ const char DEFAULT_KVSTORE_NAME[] = "arduino";
 class NinaKVStore: public KVStoreInterface {
 public:
     NinaKVStore(const char* name=DEFAULT_KVSTORE_NAME): name(name) {}
-    bool begin();
+    bool begin() override;
     bool begin(const char* name, bool readOnly=false, const char* partitionLabel=nullptr);
-    bool end();
-    bool clear();
+    bool end() override;
+    bool clear() override;
 
     typename KVStoreInterface::res_t remove(const key_t& key) override;
     bool exists(const key_t& key) const override;
