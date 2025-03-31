@@ -40,7 +40,7 @@ public:
 
     // TODO this is an utility function for kvstore should this stay here?
     /**
-     * @brief This function translate a cpp kind to a Preferences Type at compiletime
+     * @brief This function translate a cpp kind to a Preferences Type at compile time
      *
      * @returns the corresponding Type of the passed parameter
      */
@@ -80,7 +80,7 @@ public:
         operator T () const noexcept { return getValue(); }
 
         inline key_t getKey() const  { return key; }
-        inline T getValue() const    { return value; } // TODO Should we load everytime we call getValue
+        inline T getValue() const    { return value; }
 
         // load the stored value
         void load()                  { value = owner.get<T>(key).value; }
