@@ -68,7 +68,7 @@ bool ESP32KVStore::clear() {
     return true;
 }
 
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::remove(const key_t& key) {
+typename KVStoreInterface::res_t ESP32KVStore::remove(const key_t& key) {
     if(!_started || !key || _readOnly){
         return false;
     }
@@ -85,7 +85,7 @@ typename KVStoreInterface<const char*>::res_t ESP32KVStore::remove(const key_t& 
     return true;
 }
 
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::putBytes(const key_t& key, uint8_t value[], size_t len) {
+typename KVStoreInterface::res_t ESP32KVStore::putBytes(const key_t& key, const uint8_t value[], size_t len) {
     if(!_started || !key || !value || !len || _readOnly){
         return 0;
     }
@@ -102,7 +102,7 @@ typename KVStoreInterface<const char*>::res_t ESP32KVStore::putBytes(const key_t
     return len;
 }
 
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::getBytes(const key_t& key, uint8_t buf[], size_t maxLen) const {
+typename KVStoreInterface::res_t ESP32KVStore::getBytes(const key_t& key, uint8_t buf[], size_t maxLen) const {
     size_t len = getBytesLength(key);
     if(!len || !buf || !maxLen){
         return len;
@@ -171,412 +171,127 @@ ESP32KVStore::Type ESP32KVStore::getType(const key_t& key) const {
     return PT_INVALID;
 }
 
-// specialization of put and get, when esp nvs treats them differently
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<int8_t>(const key_t& key, int8_t value) {
+
+
+typename KVStoreInterface::res_t ESP32KVStore::_put(
+    const key_t& key, const uint8_t value[], size_t len, KVStoreInterface::Type t) {
     if(!_started || !key || _readOnly){
         return 0;
     }
-    esp_err_t err = nvs_set_i8(_handle, key, value);
-    if(err){
-        log_e("nvs_set_i8 fail: %s %s", key, nvs_error(err));
+
+    esp_err_t err;
+    switch(t) {
+    case PT_I8:
+        err = nvs_set_i8(_handle, key, *((int8_t*) value));
+        break;
+    case PT_U8:
+        err = nvs_set_u8(_handle, key, *((uint8_t*) value));
+        break;
+    case PT_I16:
+        err = nvs_set_i16(_handle, key, *((int16_t*) value));
+        break;
+    case PT_U16:
+        err = nvs_set_u16(_handle, key, *((uint16_t*) value));
+        break;
+    case PT_I32:
+        err = nvs_set_i32(_handle, key, *((int32_t*) value));
+        break;
+    case PT_U32:
+        err = nvs_set_u32(_handle, key, *((uint32_t*) value));
+        break;
+    case PT_I64:
+        err = nvs_set_i64(_handle, key, *((int64_t*) value));
+        break;
+    case PT_U64:
+        err = nvs_set_u64(_handle, key, *((uint64_t*) value));
+        break;
+    case PT_STR:
+        err = nvs_set_str(_handle, key, (char*)value);
+        break;
+    case PT_BLOB:
+        err = nvs_set_blob(_handle, key, value, len);
+        break;
+    case PT_FLOAT:
+        err = nvs_set_u32(_handle, key, *((uint32_t*) value));
+        break;
+    case PT_DOUBLE:
+        err = nvs_set_u64(_handle, key, *((uint64_t*) value));
+        break;
+    case PT_INVALID:
+    default:
+        log_e("nvs_set fail: invalid type");
         return 0;
     }
+
+    if(err){
+        log_e("nvs_set_ fail: %s %s", key, nvs_error(err)); // TODO put type
+        return 0;
+    }
+
     err = nvs_commit(_handle);
     if(err){
         log_e("nvs_commit fail: %s %s", key, nvs_error(err));
         return 0;
     }
-    return 1;
-}
 
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<uint8_t>(const key_t& key, uint8_t value) {
-    if(!_started || !key || _readOnly){
-        return 0;
-    }
-    esp_err_t err = nvs_set_u8(_handle, key, value);
-    if(err){
-        log_e("nvs_set_u8 fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    err = nvs_commit(_handle);
-    if(err){
-        log_e("nvs_commit fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    return 1;
-}
-
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<int16_t>(const key_t& key, int16_t value) {
-    if(!_started || !key || _readOnly){
-        return 0;
-    }
-    esp_err_t err = nvs_set_i16(_handle, key, value);
-    if(err){
-        log_e("nvs_set_i16 fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    err = nvs_commit(_handle);
-    if(err){
-        log_e("nvs_commit fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    return 2;
-}
-
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<uint16_t>(const key_t& key, uint16_t value) {
-    if(!_started || !key || _readOnly){
-        return 0;
-    }
-    esp_err_t err = nvs_set_u16(_handle, key, value);
-    if(err){
-        log_e("nvs_set_u16 fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    err = nvs_commit(_handle);
-    if(err){
-        log_e("nvs_commit fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    return 2;
-}
-
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<int32_t>(const key_t& key, int32_t value) {
-    if(!_started || !key || _readOnly){
-        return 0;
-    }
-    esp_err_t err = nvs_set_i32(_handle, key, value);
-    if(err){
-        log_e("nvs_set_i32 fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    err = nvs_commit(_handle);
-    if(err){
-        log_e("nvs_commit fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    return 4;
-}
-
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<uint32_t>(const key_t& key, uint32_t value) {
-    if(!_started || !key || _readOnly){
-        return 0;
-    }
-    esp_err_t err = nvs_set_u32(_handle, key, value);
-    if(err){
-        log_e("nvs_set_u32 fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    err = nvs_commit(_handle);
-    if(err){
-        log_e("nvs_commit fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    return 4;
-}
-
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<int64_t>(const key_t& key, int64_t value) {
-    if(!_started || !key || _readOnly){
-        return 0;
-    }
-    esp_err_t err = nvs_set_i64(_handle, key, value);
-    if(err){
-        log_e("nvs_set_i64 fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    err = nvs_commit(_handle);
-    if(err){
-        log_e("nvs_commit fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    return 8;
-}
-
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<uint64_t>(const key_t& key, uint64_t value) {
-    if(!_started || !key || _readOnly){
-        return 0;
-    }
-    esp_err_t err = nvs_set_u64(_handle, key, value);
-    if(err){
-        log_e("nvs_set_u64 fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    err = nvs_commit(_handle);
-    if(err){
-        log_e("nvs_commit fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    return 8;
-}
-
-size_t ESP32KVStore::putString(key_t key, const char* value) {
-    if(!_started || !key || !value || _readOnly){
-        return 0;
-    }
-    esp_err_t err = nvs_set_str(_handle, key, value);
-
-    if(err){
-        log_e("nvs_set_str fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    err = nvs_commit(_handle);
-    if(err){
-        log_e("nvs_commit fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    return strlen(value);
-}
-
-size_t ESP32KVStore::putString(key_t key, String value) {
-    return putString(key, value.c_str());
-}
-
-template<>
-typename KVStoreInterface<const char*>::res_t ESP32KVStore::put<const char*>(const key_t& key, const char* value) {
-    return putString(key, value);
-}
-
-template<>
-typename KVStoreInterface<string>::res_t ESP32KVStore::put<string>(const key_t& key, string value) {
-    return putString(key, value.c_str());
-}
-
-template<>
-typename KVStoreInterface<String>::res_t ESP32KVStore::put<String>(const key_t& key, String value) {
-    return putString(key, value.c_str());
-}
-
-template<>
-KVStoreInterface<const char*>::reference<int8_t> ESP32KVStore::get<int8_t>(const key_t& key, int8_t defaultValue) {
-    int8_t value = defaultValue;
-    if(!_started || !key){
-        return reference<int8_t>(key, value, *this);
-    }
-    esp_err_t err = nvs_get_i8(_handle, key, &value);
-    if(err){
-        log_v("nvs_get_i8 fail: %s %s", key, nvs_error(err));
-    }
-    return reference<int8_t>(key, value, *this);
-}
-
-template<>
-KVStoreInterface<const char*>::reference<uint8_t> ESP32KVStore::get<uint8_t>(const key_t& key, uint8_t defaultValue) {
-    uint8_t value = defaultValue;
-    if(!_started || !key){
-        return reference<uint8_t>(key, value, *this);
-    }
-    esp_err_t err = nvs_get_u8(_handle, key, &value);
-    if(err){
-        log_v("nvs_get_u8 fail: %s %s", key, nvs_error(err));
-    }
-    return reference<uint8_t>(key, value, *this);
-}
-
-template<>
-KVStoreInterface<const char*>::reference<int16_t> ESP32KVStore::get<int16_t>(const key_t& key, int16_t defaultValue) {
-    int16_t value = defaultValue;
-    if(!_started || !key){
-        return reference<int16_t>(key, value, *this);
-    }
-    esp_err_t err = nvs_get_i16(_handle, key, &value);
-    if(err){
-        log_v("nvs_get_i16 fail: %s %s", key, nvs_error(err));
-    }
-    return reference<int16_t>(key, value, *this);
-}
-
-template<>
-KVStoreInterface<const char*>::reference<uint16_t> ESP32KVStore::get<uint16_t>(const key_t& key, uint16_t defaultValue) {
-    uint16_t value = defaultValue;
-    if(!_started || !key){
-        return reference<uint16_t>(key, value, *this);
-    }
-    esp_err_t err = nvs_get_u16(_handle, key, &value);
-    if(err){
-        log_v("nvs_get_u16 fail: %s %s", key, nvs_error(err));
-    }
-    return reference<uint16_t>(key, value, *this);
-}
-
-template<>
-KVStoreInterface<const char*>::reference<int32_t> ESP32KVStore::get<int32_t>(const key_t& key, int32_t defaultValue) {
-    int32_t value = defaultValue;
-    if(!_started || !key){
-        return reference<int32_t>(key, value, *this);
-    }
-    esp_err_t err = nvs_get_i32(_handle, key, &value);
-    if(err){
-        log_v("nvs_get_i32 fail: %s %s", key, nvs_error(err));
-    }
-    return reference<int32_t>(key, value, *this);
-}
-
-template<>
-KVStoreInterface<const char*>::reference<uint32_t> ESP32KVStore::get<uint32_t>(const key_t& key, uint32_t defaultValue) {
-    uint32_t value = defaultValue;
-    if(!_started || !key){
-        return reference<uint32_t>(key, value, *this);
-    }
-    esp_err_t err = nvs_get_u32(_handle, key, &value);
-    if(err){
-        log_v("nvs_get_u32 fail: %s %s", key, nvs_error(err));
-    }
-    return reference<uint32_t>(key, value, *this);
-}
-
-template<>
-KVStoreInterface<const char*>::reference<int64_t> ESP32KVStore::get<int64_t>(const key_t& key, int64_t defaultValue) {
-    int64_t value = defaultValue;
-    if(!_started || !key){
-        return reference<int64_t>(key, value, *this);
-    }
-    esp_err_t err = nvs_get_i64(_handle, key, &value);
-    if(err){
-        log_v("nvs_get_i64 fail: %s %s", key, nvs_error(err));
-    }
-    return reference<int64_t>(key, value, *this);
-}
-
-template<>
-KVStoreInterface<const char*>::reference<uint64_t> ESP32KVStore::get<uint64_t>(const key_t& key, uint64_t defaultValue) {
-    uint64_t value = defaultValue;
-    if(!_started || !key){
-        return reference<uint64_t>(key, value, *this);
-    }
-    esp_err_t err = nvs_get_u64(_handle, key, &value);
-    if(err){
-        log_v("nvs_get_u64 fail: %s %s", key, nvs_error(err));
-    }
-    return reference<uint64_t>(key, value, *this);
-}
-
-// KVStoreInterface<const char*>::reference<const char*> ESP32KVStore::get<const char*>(const key_t& key, const char* defaultValue) {
-    // size_t len = 0;
-    // Serial.println(len);
-
-    // if(!_started || !key){
-    //     return reference<const char*>(key, defaultValue, *this);;
-    // }
-    // esp_err_t err = nvs_get_str(_handle, key, NULL, &len);
-    // Serial.println(len);
-
-    // if(err){
-    //     log_e("nvs_get_str len fail: %s %s", key, nvs_error(err));
-    //     return reference<const char*>(key, defaultValue, *this);;
-    // }
-
-    // char* result = new char[len + 1];
-    // Serial.println(len);
-    // err = nvs_get_str(_handle, key, result, &len);
-    // if(err){
-    //     log_e("nvs_get_str fail: %s %s", key, nvs_error(err));
-    //     return reference<const char*>(key, defaultValue, *this);;
-    // }
-
-    // result[len] = '\0';
-    // return reference<const char*>(key, result, *this, [](const char* v) {
-    //     delete v;
-    // });
-// }
-
-size_t ESP32KVStore::getString(const char* key, char* value, size_t maxLen) {
-    size_t len = 0;
-    if(!_started || !key || !value || !maxLen){
-        return 0;
-    }
-
-    esp_err_t err = nvs_get_str(_handle, key, NULL, &len);
-    if(err){
-        log_e("nvs_get_str len fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
-    if(len > maxLen){
-        log_e("not enough space in value: %u < %u", maxLen, len);
-        return 0;
-    }
-    err = nvs_get_str(_handle, key, value, &len);
-    if(err){
-        log_e("nvs_get_str fail: %s %s", key, nvs_error(err));
-        return 0;
-    }
     return len;
 }
 
-String ESP32KVStore::getString(key_t key, const String defaultValue) {
-    size_t len = 0;
-    String res = defaultValue;
+typename KVStoreInterface::res_t ESP32KVStore::_get(const key_t& key, uint8_t value[], size_t len, Type t) {
     if(!_started || !key){
-        return res;
+        return 0;
     }
 
-    esp_err_t err = nvs_get_str(_handle, key, NULL, &len);
+    esp_err_t err;
+    switch(t) {
+    case PT_I8:
+        err = nvs_get_i8(_handle, key, (int8_t*) value);
+        break;
+    case PT_U8:
+        err = nvs_get_u8(_handle, key, (uint8_t*) value);
+        break;
+    case PT_I16:
+        err = nvs_get_i16(_handle, key, (int16_t*) value);
+        break;
+    case PT_U16:
+        err = nvs_get_u16(_handle, key, (uint16_t*) value);
+        break;
+    case PT_I32:
+        err = nvs_get_i32(_handle, key, (int32_t*) value);
+        break;
+    case PT_U32:
+        err = nvs_get_u32(_handle, key, (uint32_t*) value);
+        break;
+    case PT_I64:
+        err = nvs_get_i64(_handle, key, (int64_t*) value);
+        break;
+    case PT_U64:
+        err = nvs_get_u64(_handle, key, (uint64_t*) value);
+        break;
+    case PT_STR:
+        err = nvs_get_str(_handle, key, (char*)value, &len);
+        break;
+    case PT_BLOB:
+        err = nvs_get_blob(_handle, key, value, &len);
+        break;
+    case PT_FLOAT:
+        err = nvs_get_u32(_handle, key, (uint32_t*) value);
+        break;
+    case PT_DOUBLE:
+        err = nvs_get_u64(_handle, key, (uint64_t*) value);
+        break;
+    case PT_INVALID:
+    default:
+        log_e("nvs_get fail: invalid type");
+        break;
+    }
+
     if(err){
-        log_e("nvs_get_str len fail: %s %s", key, nvs_error(err));
-        return res;
+        log_e("nvs_get_ fail: %s %s", key, nvs_error(err)); // TODO put type
+        return 0;
     }
 
-    char *str = new char[len+1];
-
-    getString(key, str, len+1);
-    str[len] = '\0';
-
-    res = str;
-    delete str;
-    str = nullptr;
-
-    return res;
+    return len;
 }
-
-
-// template<>
-// KVStoreInterface<const char*>::reference<string> ESP32KVStore::get<string>(const key_t& key, string defaultValue) {
-    // char * value = NULL;
-    // size_t len = 0;
-    // if(!_started || !key){
-    //     return string(defaultValue);
-    // }
-    // esp_err_t err = nvs_get_str(_handle, key, value, &len);
-    // if(err){
-    //     log_e("nvs_get_str len fail: %s %s", key, nvs_error(err));
-    //     return string(defaultValue);
-    // }
-    // char buf[len];
-    // value = buf;
-    // err = nvs_get_str(_handle, key, value, &len);
-    // if(err){
-    //     log_e("nvs_get_str fail: %s %s", key, nvs_error(err));
-    //     return string(defaultValue);
-    // }
-    // return string(buf);
-// }
-
-// template<>
-// KVStoreInterface<const char*>::reference<String> ESP32KVStore::get<String>(const key_t& key, String defaultValue) {
-    // char * value = NULL;
-    // size_t len = 0;
-    // if(!_started || !key){
-    //     return String(defaultValue);
-    // }
-    // esp_err_t err = nvs_get_str(_handle, key, value, &len);
-    // if(err){
-    //     log_e("nvs_get_str len fail: %s %s", key, nvs_error(err));
-    //     return String(defaultValue);
-    // }
-    // char buf[len];
-    // value = buf;
-    // err = nvs_get_str(_handle, key, value, &len);
-    // if(err){
-    //     log_e("nvs_get_str fail: %s %s", key, nvs_error(err));
-    //     return String(defaultValue);
-    // }
-    // return String(buf);
-// }
 
 #endif // defined(ARDUINO_ARCH_ESP32)
