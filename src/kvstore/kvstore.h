@@ -540,27 +540,83 @@ protected:
 template<typename T>
 constexpr typename KVStoreInterface::Type KVStoreInterface::getType(T t) {
     (void) t;
-    if(std::is_same<T, int8_t>::value)              { return PT_I8;
-    } else if(std::is_same<T, uint8_t>::value)      { return PT_U8;
-    } else if(std::is_same<T, bool>::value)         { return PT_I8;
-    } else if(std::is_same<T, int16_t>::value)      { return PT_I16;
-    } else if(std::is_same<T, uint16_t>::value)     { return PT_U16;
-    } else if(std::is_same<T, int32_t>::value)      { return PT_I32;
-    } else if(std::is_same<T, uint32_t>::value)     { return PT_U32;
-    } else if(std::is_same<T, int64_t>::value)      { return PT_I64;
-    } else if(std::is_same<T, uint64_t>::value)     { return PT_U64;
-    } else if(std::is_same<T, float>::value)        { return PT_FLOAT;
-    } else if(std::is_same<T, double>::value)       { return PT_DOUBLE;
-    } else if(std::is_same<T, char*>::value)        { return PT_STR;
-    } else if(std::is_same<T, const char*>::value)  { return PT_STR;
-    } else if(std::is_same<T, char const *>::value) { return PT_STR;
-    } else if(std::is_same<T, uint8_t*>::value)     { return PT_BLOB;
-    }
     return PT_INVALID;
 }
 
 template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<int8_t>(int8_t t) {
+    // (void) t;
+    return PT_I8;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<uint8_t>(uint8_t t) {
+    // (void) t;
+    return PT_U8;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<bool>(bool t) {
+    // (void) t;
+    return PT_I8;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<int16_t>(int16_t t) {
+    // (void) t;
+    return PT_I16;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<uint16_t>(uint16_t t) {
+    // (void) t;
+    return PT_U16;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<int32_t>(int32_t t) {
+    // (void) t;
+    return PT_I32;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<uint32_t>(uint32_t t) {
+    // (void) t;
+    return PT_U32;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<int64_t>(int64_t t) {
+    // (void) t;
+    return PT_I64;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<uint64_t>(uint64_t t) {
+    // (void) t;
+    return PT_U64;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<float>(float t) {
+    // (void) t;
+    return PT_FLOAT;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<double>(double t) {
+    // (void) t;
+    return PT_DOUBLE;
+}
+
+template<>
 constexpr typename KVStoreInterface::Type KVStoreInterface::getType<char*>(char* t) {
-    (void) t;
+    // (void) t;
     return PT_STR;
+}
+
+template<>
+constexpr typename KVStoreInterface::Type KVStoreInterface::getType<uint8_t*>(uint8_t* t) {
+    // (void) t;
+    return PT_BLOB;
 }
