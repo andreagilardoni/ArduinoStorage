@@ -20,7 +20,6 @@ jobs:
       # libraries to install for all boards
       UNIVERSAL_LIBRARIES: |
         - source-path: ./
-        - name: WiFiNINA
       # sketch paths to compile (recursive) for all boards
       UNIVERSAL_SKETCH_PATHS: |
         - examples/KVStoreValidation
@@ -64,6 +63,13 @@ jobs:
           - fqbn: arduino:esp32:nano_nora
             type: arduino_esp32
             artifact-name-suffix: arduino-esp32-nano_nora
+
+        include:
+          # MKR WiFi 1010, Nano 33 IoT, Nano RP2040 Connect
+          - board:
+              type: nina
+            libraries: |
+              - name: WiFiNINA
     steps:
       - name: Checkout
         uses: actions/checkout@v4
