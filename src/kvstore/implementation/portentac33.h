@@ -17,7 +17,7 @@
 
 #define QSPIF_BD_ERROR_OK 0
 
-class PortentaC33KVStore: public KVStoreInterface<const char*> {
+class PortentaC33KVStore: public KVStoreInterface {
 public:
     PortentaC33KVStore();
     ~PortentaC33KVStore() { end(); }
@@ -27,10 +27,10 @@ public:
     bool end() override;
     bool clear() override;
 
-    typename KVStoreInterface<const char*>::res_t remove(const key_t& key) override;
+    typename KVStoreInterface::res_t remove(const key_t& key) override;
     bool exists(const key_t& key) const override;
-    typename KVStoreInterface<const char*>::res_t putBytes(const key_t& key, uint8_t b[], size_t s) override;
-    typename KVStoreInterface<const char*>::res_t getBytes(const key_t& key, uint8_t b[], size_t s) const override;
+    typename KVStoreInterface::res_t putBytes(const key_t& key, const uint8_t b[], size_t s) override;
+    typename KVStoreInterface::res_t getBytes(const key_t& key, uint8_t b[], size_t s) const override;
     size_t getBytesLength(const key_t& key) const override;
 private:
     MBRBlockDevice* bd;

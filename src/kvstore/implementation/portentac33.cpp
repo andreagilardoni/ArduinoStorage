@@ -56,7 +56,7 @@ bool PortentaC33KVStore::end() {
 }
 
 template<typename T=int>
-static inline typename KVStoreInterface<const char*>::res_t fromMbedErrors(int error, T res=1) {
+static inline typename KVStoreInterface::res_t fromMbedErrors(int error, T res=1) {
     return error == KVSTORE_SUCCESS ? res : -error;
 }
 
@@ -64,15 +64,15 @@ bool PortentaC33KVStore::clear() {
     return kvstore != nullptr ? kvstore->reset() : false;
 }
 
-typename KVStoreInterface<const char*>::res_t PortentaC33KVStore::remove(const key_t& key) {
+typename KVStoreInterface::res_t PortentaC33KVStore::remove(const key_t& key) {
     return kvstore != nullptr ? fromMbedErrors(kvstore->remove(key)) : -1;
 }
 
-typename KVStoreInterface<const char*>::res_t PortentaC33KVStore::putBytes(const key_t& key, uint8_t buf[], size_t len) {
+typename KVStoreInterface::res_t PortentaC33KVStore::putBytes(const key_t& key, const uint8_t buf[], size_t len) {
     return kvstore != nullptr ? fromMbedErrors(kvstore->set(key, buf, len, 0), len) : -1; // TODO flags
 }
 
-typename KVStoreInterface<const char*>::res_t PortentaC33KVStore::getBytes(const key_t& key, uint8_t buf[], size_t maxLen) const {
+typename KVStoreInterface::res_t PortentaC33KVStore::getBytes(const key_t& key, uint8_t buf[], size_t maxLen) const {
     if(kvstore == nullptr) {
         return -1;
     }
