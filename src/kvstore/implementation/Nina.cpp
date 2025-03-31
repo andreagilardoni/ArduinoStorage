@@ -57,7 +57,7 @@ typename KVStoreInterface::res_t NinaKVStore::_put(
     }
 
     if(t == PT_STR) {
-        len++;
+        len++; // For strings we also send the \0
     }
     return WiFiDrv::prefPut(key, static_cast<PreferenceType>(t), value, len);
 }
@@ -66,7 +66,8 @@ typename KVStoreInterface::res_t NinaKVStore::_get(const key_t& key, uint8_t val
     if(t == PT_DOUBLE || t == PT_FLOAT) {
         t = PT_BLOB;
     }
-    size_t res = WiFiDrv::prefGet(key, static_cast<PreferenceType>(t), value, res);
+
+    size_t res = WiFiDrv::prefGet(key, static_cast<PreferenceType>(t), value, len);
 
     if(t == PT_STR) {
         value[res] = '\0';
