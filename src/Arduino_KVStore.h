@@ -30,9 +30,9 @@ using KVStore = PortentaC33KVStore;
 
 #elif defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_NANO_RP2040_CONNECT)
 
-#include "kvstore/implementation/SAMD.h"
+#include "kvstore/implementation/Nina.h"
 
-using KVStore = SAMDKVStore;
+using KVStore = NinaKVStore;
 
 #elif defined(ARDUINO_ARCH_ESP32)
 
